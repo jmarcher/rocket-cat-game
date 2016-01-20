@@ -41,7 +41,7 @@ allprojects {
     ext {
         appName = "Super Jumper"
     }
-    
+
     repositories {
         mavenLocal();
         mavenCentral()
@@ -51,7 +51,7 @@ allprojects {
 
 project(":core") {
     apply plugin: "java"
-    
+
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
     }
@@ -59,7 +59,7 @@ project(":core") {
 
 project(":desktop") {
     apply plugin: "java"
-    
+
     dependencies {
         compile project(":core")
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
@@ -74,7 +74,7 @@ project(":android") {
 
     dependencies {
         compile project(":core")
-        compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"        
+        compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
@@ -91,7 +91,7 @@ project(":html") {
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-    }    
+    }
 }
 
 project(":ios") {
@@ -109,5 +109,5 @@ project(":ios") {
 
 
 tasks.eclipse.doLast {
-	delete ".project"
+    delete ".project"
 }

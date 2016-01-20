@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
- * 
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,12 +19,12 @@ package com.badlogicgames.superjumper;
 import com.badlogic.gdx.math.Vector2;
 
 public class DynamicGameObject extends GameObject {
-	public final Vector2 velocity;
-	public final Vector2 accel;
+    public final Vector2 velocity;
+    public final Vector2 accel;
 
-	public DynamicGameObject (float x, float y, float width, float height) {
-		super(x, y, width, height);
-		velocity = new Vector2();
-		accel = new Vector2();
-	}
+    public DynamicGameObject(float x, float y, float width, float height) {
+        super(x, y, width, height);
+        velocity = new Vector2();
+        accel = new Vector2();
+    }
 }

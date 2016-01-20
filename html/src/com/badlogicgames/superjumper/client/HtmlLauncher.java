@@ -7,13 +7,13 @@ import com.badlogicgames.superjumper.SuperJumper;
 
 public class HtmlLauncher extends GwtApplication {
 
-        @Override
-        public GwtApplicationConfiguration getConfig () {
-                return new GwtApplicationConfiguration(480, 800);
-        }
+    @Override
+    public GwtApplicationConfiguration getConfig() {
+        return new GwtApplicationConfiguration(480, 800);
+    }
 
-        @Override
-        public ApplicationListener getApplicationListener () {
-                return new SuperJumper();
-        }
+    @Override
+    public ApplicationListener getApplicationListener() {
+        return new SuperJumper();
+    }
 }

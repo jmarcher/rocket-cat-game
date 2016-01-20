@@ -1,0 +1,58 @@
+Applications Graphics Acceleration Info:
+Uptime: 367236906 Realtime: 744167083
+
+** Graphics info for pid 31425 [com.badlogicgames.superjumper.android] **
+
+Recent DisplayList operations
+Save
+DrawRenderNode
+  DrawRenderNode
+  DrawRenderNode
+    DrawRenderNode
+      DrawRenderNode
+        DrawColor
+RestoreToCount
+DrawColor
+Save
+DrawRenderNode
+  DrawRenderNode
+  DrawRenderNode
+    DrawRenderNode
+      DrawRenderNode
+        DrawColor
+RestoreToCount
+DrawColor
+
+Caches:
+Current memory usage / total memory usage (bytes):
+  TextureCache                0 / 25165824
+  LayerCache                  0 / 16777216 (numLayers = 0)
+  Garbage layers              0
+  Active layers               0
+  RenderBufferCache           0 /  2097152
+  GradientCache               0 /   524288
+  PathCache                   0 / 10485760
+  TessellationCache           0 /  1048576
+  TextDropShadowCache         0 /  2097152
+  PatchCache                  0 /   131072
+  FontRenderer 0 A8           0 /        0
+  FontRenderer 0 RGBA         0 /        0
+  FontRenderer 0 total        0 /        0
+Other:
+  FboCache                    0 /        0
+Total memory usage:
+  0 bytes, 0.00 MB
+
+Profile data in ms:
+
+	com.badlogicgames.superjumper.android/com.badlogicgames.superjumper.android.AndroidLauncher/android.view.ViewRootImpl@265c022a (visibility=0)
+View hierarchy:
+
+  com.badlogicgames.superjumper.android/com.badlogicgames.superjumper.android.AndroidLauncher/android.view.ViewRootImpl@265c022a
+  5 views, 4,71 kB of display lists
+
+
+Total ViewRootImpl: 1
+Total Views:        5
+Total DisplayList:  4,71 kB
+
