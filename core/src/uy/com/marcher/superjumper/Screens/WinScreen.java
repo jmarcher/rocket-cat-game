@@ -47,7 +47,6 @@ public class WinScreen extends ScreenAdapter {
         game.batcher.begin();
         game.batcher.draw(Assets.backgroundRegion, 0, 0);
         game.batcher.draw(Assets.castle, 60, 120, 200, 200);
-        game.batcher.draw(Assets.bobFall.getKeyFrame(0, Animation.ANIMATION_LOOPING), 120, 200);
         Assets.font.draw(game.batcher, messages[currentMessage], 0, 400, 320, Align.center, false);
         game.batcher.draw(princess, 150, 200);
         game.batcher.end();

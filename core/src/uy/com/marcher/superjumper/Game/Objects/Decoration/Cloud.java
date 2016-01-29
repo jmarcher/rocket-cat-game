@@ -11,22 +11,23 @@ import uy.com.marcher.superjumper.Game.World;
 /**
  * Created by gordo on 27/01/16.
  */
-public class Dust extends DynamicGameObject {
+public class Cloud extends DynamicGameObject {
     private TextureRegion dustRegion;
 
 
 
     public float rotation;
     private int length;
+    private float alpha;
 
-    public Dust(){
+    public Cloud(){
         super(0,0,World.WORLD_WIDTH,World.WORLD_HEIGHT);
 
         length =0;
         init();
     }
 
-    public Dust(float x, float y, float width, float height) {
+    public Cloud(float x, float y, float width, float height) {
         super(x, y, width, height);
 
         length =0;
@@ -38,8 +39,9 @@ public class Dust extends DynamicGameObject {
         dimension.set(World.WORLD_WIDTH, World.WORLD_HEIGHT);
         origin.x = -dimension.x *2;
         length += dimension.y *2;
-        velocity.x = MathUtils.random(-0.3f,0.3f);
-        velocity.y = -0.3f;
+        velocity.x = MathUtils.random(-0.5f,0.6f);
+        velocity.y = MathUtils.random(-0.6f,0.5f);
+        alpha = MathUtils.random(0.5f,0.95f);
     }
 
     private void drawDust(SpriteBatch batch, float offsetX, float offsetY, float tinitColor){
@@ -71,5 +73,9 @@ public class Dust extends DynamicGameObject {
 
     public void update(float deltaTime) {
             position.add(velocity.x * deltaTime, velocity.y*deltaTime);
+    }
+
+    public float getAlpha() {
+        return alpha;
     }
 }

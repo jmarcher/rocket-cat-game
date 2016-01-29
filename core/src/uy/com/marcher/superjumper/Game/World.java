@@ -20,7 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import uy.com.marcher.superjumper.Game.Objects.*;
-import uy.com.marcher.superjumper.Game.Objects.Decoration.Dust;
+import uy.com.marcher.superjumper.Game.Objects.Decoration.Cloud;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,8 @@ public class World {
     public final List<Spring> springs;
     public final List<Enemy> enemies;
     public final List<Star> stars;
-    public final List<Dust> dusts;
+    public final List<Cloud> clouds;
+    public final List<Cloud> frontClouds;
 
     public final WorldListener listener;
     public final Random randomizer;
@@ -55,7 +56,8 @@ public class World {
         this.springs = new ArrayList<Spring>();
         this.enemies = new ArrayList<Enemy>();
         this.stars = new ArrayList<Star>();
-        this.dusts = new ArrayList<Dust>();
+        this.clouds = new ArrayList<Cloud>();
+        this.frontClouds = new ArrayList<Cloud>();
         this.listener = listener;
         randomizer = new Random();
         generateLevel();
@@ -83,16 +85,22 @@ public class World {
                 platforms.add(platform);
             }else{
                 if(randomizer.nextFloat() > 0.60f){
-                    Dust dust = new Dust();
-                    dust.rotation = MathUtils.random(0.0f, 360.0f);
-                    dust.position.x = x;
-                    dust.position.y = y;
-                    dusts.add(dust);
+                    Cloud cloud = new Cloud();
+                    cloud.rotation = MathUtils.random(-10f, 10f);
+                    cloud.position.x = x;
+                    cloud.position.y = y;
+                    clouds.add(cloud);
+                }else if(randomizer.nextFloat() > 0.85f){
+                    Cloud cloud = new Cloud();
+                    cloud.rotation = MathUtils.random(-10f, 10f);
+                    cloud.position.x = x;
+                    cloud.position.y = y;
+                    frontClouds.add(cloud);
                 }
             }
 
            // enemies.add(new Enemy(1f,3f)); //FIXME: Solo para probar
-            if (y > WORLD_HEIGHT / 3 && randomizer.nextFloat() > 0.8f) {//FIXME: No hay enemigos para probar
+            if (y > WORLD_HEIGHT / 10 && randomizer.nextFloat() > 0.8f) {//FIXME: No hay enemigos para probar
                 Enemy enemy = new Enemy(platform.position.x + randomizer.nextFloat(), platform.position.y
                         + Enemy.ENEMY_HEIGHT + randomizer.nextFloat() * 2);
                 enemies.add(enemy);
@@ -146,10 +154,10 @@ public class World {
     }
 
     private void updateDusts(float deltaTime) {
-        int len = dusts.size();
+        int len = clouds.size();
         for (int i = 0; i < len; i++) {
-            Dust dust = dusts.get(i);
-            dust.update(deltaTime);
+            Cloud cloud = clouds.get(i);
+            cloud.update(deltaTime);
         }
     }
 

@@ -18,8 +18,10 @@ package uy.com.marcher.superjumper.Screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import uy.com.marcher.superjumper.Game.Assets;
@@ -76,7 +78,7 @@ public class MainMenuScreen extends ScreenAdapter {
             }
         }
     }
-
+    ShapeRenderer sr;
     public void draw() {
         GL20 gl = Gdx.gl;
         gl.glClearColor(1, 0, 0, 1);
@@ -95,6 +97,7 @@ public class MainMenuScreen extends ScreenAdapter {
         game.batcher.draw(Assets.mainMenu, 10, 200 - 110 / 2, 300, 110);
         game.batcher.draw(Settings.soundEnabled ? Assets.soundOn : Assets.soundOff, 0, 0, 64, 64);
         game.batcher.end();
+
     }
 
     @Override

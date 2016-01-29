@@ -18,6 +18,7 @@ package uy.com.marcher.superjumper;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Timer;
 import uy.com.marcher.superjumper.Game.Assets;
@@ -27,7 +28,7 @@ import uy.com.marcher.superjumper.Screens.SplashScreen;
 import uy.com.marcher.superjumper.Util.Settings;
 
 public class SuperJumper extends Game {
-    private static long SPLASH_MINIMUM_MILLIS = 2000L;
+    private static long SPLASH_MINIMUM_MILLIS = 950L;
     // used by all screens
     public SpriteBatch batcher;
 
@@ -47,6 +48,7 @@ public class SuperJumper extends Game {
                     public void run() {
                         batcher = new SpriteBatch();
                         Settings.load();
+                        Assets.instance.init(new AssetManager());
                         Assets.load();
 
                         // Se muestra el menu principal tras la SpashScreen
@@ -71,6 +73,7 @@ public class SuperJumper extends Game {
     @Override
     public void dispose() {
         getScreen().dispose();
+        Assets.instance.dispose();
         Gdx.app.exit();
     }
 

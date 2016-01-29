@@ -25,17 +25,22 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.utils.Disableable;
 import com.badlogic.gdx.utils.Disposable;
 import uy.com.marcher.superjumper.Util.Animation;
+import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
+
+import java.util.Set;
 
 public class Assets implements Disposable, AssetErrorListener{
     private static final String TAG = Assets.class.getName();
 
     public static final Assets instance = new Assets();
+
+
 
     private AssetManager assetManager;
 
@@ -59,34 +64,53 @@ public class Assets implements Disposable, AssetErrorListener{
     public static TextureRegion spring;
     public static TextureRegion castle;
     public static Animation coinAnim;
-    public static Animation bobJump;
-    public static Animation bobFall;
     public static Animation springExplotion;
-    public static TextureRegion bobHit;
     public static Animation squirrelFly;
     public static TextureRegion platform;
     public static Animation brakingPlatform;
     public static BitmapFont font;
     public static Music music;
+    public static Music menuMusic;
+
+    private static long menuMusicID;
+
     public static Sound jumpSound;
     public static Sound highJumpSound;
     public static Sound hitSound;
     public static Sound coinSound;
     public static Sound clickSound;
+    public static Sound engineSound;
+
     private static Texture catItemsKlein;
+
+
+    public AssetJumper jumper;
+    public AssetsGUI GUI;
 
 
 
     public static FreeTypeFontGenerator fontGenerator;
     public static FreeTypeFontGenerator.FreeTypeFontParameter fontParameter;
 
+    private Assets(){}
 
     public void init(AssetManager assetManager){
         this.assetManager = assetManager;
         assetManager.setErrorListener(this);
-        load();
+        assetManager.load(Constants.TEXTURE_ATLAS_OBJETS, TextureAtlas.class);
         assetManager.finishLoading();
         Gdx.app.debug(TAG, "Assets loaded: #"+assetManager.getAssetNames().size);
+        for (String a : assetManager.getAssetNames())
+            Gdx.app.debug(TAG, "asset: "+a);
+
+        TextureAtlas atlas = assetManager.get(Constants.TEXTURE_ATLAS_OBJETS);
+        for(Texture texture : atlas.getTextures()){
+            texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        }
+
+        //create the resources
+        jumper = new AssetJumper(atlas);
+        GUI = new AssetsGUI(atlas);
     }
 
     public static Texture loadTexture(String file) {
@@ -122,15 +146,12 @@ public class Assets implements Disposable, AssetErrorListener{
         coinAnim = new Animation(0.1f, new TextureRegion(catItemsKlein, 783, 424, 66, 64), new TextureRegion(catItemsKlein, 865, 424, 65, 66),
                 new TextureRegion(catItemsKlein, 947, 424, 66, 64), new TextureRegion(catItemsKlein, 1025, 424, 66, 66));
 
-        bobJump = new Animation(0.2f, new TextureRegion(catItemsKlein, 1266, 933, 134, 179), new TextureRegion(catItemsKlein, 1266, 665, 134, 179));
-        bobFall = new Animation(0.2f, new TextureRegion(catItemsKlein, 1266, 933, 134, 179), new TextureRegion(catItemsKlein, 1266, 665, 134, 179));
         platform = new TextureRegion(catItemsKlein, 578, 742, 237, 109);
         brakingPlatform = new Animation(0.2f, new TextureRegion(catItemsKlein, 578, 742, 237, 109),
                 new TextureRegion(catItemsKlein, 35, 12, 254, 131),
                 new TextureRegion(catItemsKlein, 319, 0, 263, 143),
                 new TextureRegion(catItemsKlein, 625, 0, 254, 150));
 
-        bobHit = new TextureRegion(catItemsKlein, 1260, 384, 146, 214);
         squirrelFly = new Animation(0.2f, new TextureRegion(catItemsKlein, 3, 1224, 145, 231));
 
         springExplotion = new Animation(0.3f, new TextureRegion(catItemsKlein, 1089, 99, 73, 56),
@@ -141,15 +162,21 @@ public class Assets implements Disposable, AssetErrorListener{
         //font = new BitmapFont(Gdx.files.internal("data/newfont.fnt"), Gdx.files.internal("data/newfont.png"), false);
 
 
-        music = Gdx.audio.newMusic(Gdx.files.internal("data/music.mp3"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("data/sounds/spacial.mp3"));
         music.setLooping(true);
         music.setVolume(0.5f);
-        if (Settings.soundEnabled) music.play();
+
+        /*menuMusic = Gdx.audio.newMusic(Gdx.files.internal("data/sounds/menu.mp3"));
+        menuMusic.setLooping(true);
+        menuMusic.setVolume(0.5f);
+       if(Settings.soundEnabled) menuMusic.play();*/
+
         jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/jump.wav"));
         highJumpSound = Gdx.audio.newSound(Gdx.files.internal("data/highjump.wav"));
         hitSound = Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
         coinSound = Gdx.audio.newSound(Gdx.files.internal("data/coin.wav"));
         clickSound = Gdx.audio.newSound(Gdx.files.internal("data/click.wav"));
+        engineSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/rocketEngine.mp3"));
     }
 
     private static void loadFont() {
@@ -177,5 +204,35 @@ public class Assets implements Disposable, AssetErrorListener{
     @Override
     public void dispose() {
         assetManager.dispose();
+    }
+
+
+    /**
+     * Inner classes
+     * Clean code suck my dick!
+     */
+
+    public class AssetJumper{
+        public final TextureAtlas.AtlasRegion jumperRegion;
+        public final TextureAtlas.AtlasRegion jumperDeadRegion;
+
+        public AssetJumper(TextureAtlas atlas) {
+            this.jumperRegion = atlas.findRegion("jumper");
+            this.jumperDeadRegion = atlas.findRegion("jumper_dead");
+        }
+    }
+
+    public class AssetsGUI{
+        public final TextureAtlas.AtlasRegion pauseButton;
+        public final TextureAtlas.AtlasRegion resumeButton;
+        public final TextureAtlas.AtlasRegion soundOn;
+        public final TextureAtlas.AtlasRegion soundOff;
+
+        public AssetsGUI(TextureAtlas atlas){
+            this.pauseButton = atlas.findRegion("pause");
+            this.resumeButton = atlas.findRegion("play");
+            this.soundOff = atlas.findRegion("soundOff");
+            this.soundOn = atlas.findRegion("soundOn");
+        }
     }
 }

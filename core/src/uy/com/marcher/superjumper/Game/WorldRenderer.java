@@ -24,7 +24,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import uy.com.marcher.superjumper.Game.Objects.*;
-import uy.com.marcher.superjumper.Game.Objects.Decoration.Dust;
+import uy.com.marcher.superjumper.Game.Objects.Decoration.Cloud;
 import uy.com.marcher.superjumper.Util.Animation;
 
 public class WorldRenderer {
@@ -65,9 +65,10 @@ public class WorldRenderer {
     public void renderObjects() {
         batch.enableBlending();
         batch.begin();
-        renderDusts();
+        renderClouds();
         renderPlatforms();
         renderBob();
+        renderFrontClouds();
         renderItems();
         renderEnemies();
         //renderCastle();
@@ -152,15 +153,15 @@ public class WorldRenderer {
         world.jumper.render(batch);
         switch (world.jumper.state) {
             case Jumper.JUMPER_STATE_FALL:
-                keyFrame = Assets.bobFall.getKeyFrame(world.jumper.stateTime, Animation.ANIMATION_LOOPING);
+                keyFrame = Assets.instance.jumper.jumperRegion;
                 break;
             case Jumper.JUMPER_STATE_JUMP:
-                keyFrame = Assets.bobJump.getKeyFrame(world.jumper.stateTime, Animation.ANIMATION_LOOPING);
+                keyFrame = Assets.instance.jumper.jumperRegion; //Assets.bobJump.getKeyFrame(world.jumper.stateTime, Animation.ANIMATION_LOOPING);
 
                 break;
             case Jumper.JUMPER_STATE_HIT:
             default:
-                keyFrame = Assets.bobHit;
+                keyFrame = Assets.instance.jumper.jumperDeadRegion;
         }
 
         if(!MathUtils.isEqual(world.jumper.velocity.x,0,0.1f)) {
@@ -176,13 +177,30 @@ public class WorldRenderer {
 
     }
 
-    private void renderDusts() {
-        int len = world.dusts.size();
+    private void renderClouds() {
+        int len = world.clouds.size();
+        Color c = batch.getColor();
         for (int i = 0; i < len; i++) {
-            Dust dust = world.dusts.get(i);
-            batch.draw(Assets.dustRegion, dust.position.x,
-                    dust.position.y, 0, 0 , Assets.dustRegion.getRegionWidth()/40,  Assets.dustRegion.getRegionHeight()/40,1,1,dust.rotation);
+            Cloud cloud = world.clouds.get(i);
+
+            batch.setColor(c.r,c.g,c.b,world.clouds.get(i).getAlpha());
+            batch.draw(Assets.dustRegion, cloud.position.x,
+                    cloud.position.y, 0, 0 , Assets.dustRegion.getRegionWidth()/40,  Assets.dustRegion.getRegionHeight()/40,1,1, cloud.rotation);
         }
+        batch.setColor(c.r,c.g,c.b,1.0f);
+    }
+
+    private void renderFrontClouds() {
+        int len = world.frontClouds.size();
+        Color c = batch.getColor();
+        for (int i = 0; i < len; i++) {
+            Cloud cloud = world.frontClouds.get(i);
+
+            batch.setColor(c.r,c.g,c.b,world.frontClouds.get(i).getAlpha());
+            batch.draw(Assets.dustRegion, cloud.position.x,
+                    cloud.position.y, 0, 0 , Assets.dustRegion.getRegionWidth()/40,  Assets.dustRegion.getRegionHeight()/40,1,1, cloud.rotation);
+        }
+        batch.setColor(c.r,c.g,c.b,1.0f);
     }
 
     private void renderPlatforms() {

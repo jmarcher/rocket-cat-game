@@ -24,12 +24,15 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import uy.com.marcher.superjumper.Game.Assets;
+import uy.com.marcher.superjumper.Game.Objects.Jumper;
 import uy.com.marcher.superjumper.Game.World;
 import uy.com.marcher.superjumper.Game.WorldRenderer;
 import uy.com.marcher.superjumper.Game.World.WorldListener;
+import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 import uy.com.marcher.superjumper.SuperJumper;
 
@@ -50,15 +53,18 @@ public class GameScreen extends ScreenAdapter {
     WorldRenderer renderer;
     Rectangle pauseBounds;
     Rectangle resumeBounds;
-    Rectangle quitBounds;
+    Rectangle volumeControlBounds;
     int lastScore;
     String scoreString;
     String altitudeString;
 
     GlyphLayout glyphLayout = new GlyphLayout();
 
+    long engineSound = -1;
+
     public GameScreen(SuperJumper game) {
         this.game = game;
+        this.sr = new ShapeRenderer();
 
         state = GAME_READY;
         guiCam = new OrthographicCamera(320, 480);
@@ -87,9 +93,9 @@ public class GameScreen extends ScreenAdapter {
         };
         world = new World(worldListener);
         renderer = new WorldRenderer(game.batcher, world);
-        pauseBounds = new Rectangle(320 - 64, 480 - 64, 64, 64);
-        resumeBounds = new Rectangle(160 - 96, 240, 192, 36);
-        quitBounds = new Rectangle(160 - 96, 240 - 36, 192, 36);
+        pauseBounds = new Rectangle(320 - 32, 480 - 32, 32, 32);
+        volumeControlBounds = new Rectangle(320 - 70, 480 - 32,32,32);
+        resumeBounds = new Rectangle(160 - 48/2, 240-48/2, 48, 48);
         lastScore = 0;
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
@@ -99,6 +105,18 @@ public class GameScreen extends ScreenAdapter {
     public void update(float deltaTime) {
         if (deltaTime > 0.1f) deltaTime = 0.1f;
 
+        if (Gdx.input.justTouched()) {
+            //guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
+
+            if (volumeControlBounds.contains(touchPoint.x, touchPoint.y)) {
+                Assets.playSound(Assets.clickSound);
+                Settings.soundEnabled = !Settings.soundEnabled;
+                if (Settings.soundEnabled)
+                    Assets.music.play();
+                else
+                    Assets.music.pause();
+            }
+        }
         switch (state) {
             case GAME_READY:
                 updateReady();
@@ -121,6 +139,11 @@ public class GameScreen extends ScreenAdapter {
     private void updateReady() {
         if (Gdx.input.justTouched()) {
             state = GAME_RUNNING;
+            if (Settings.soundEnabled){
+                //Assets.menuMusic.stop();
+                Assets.music.play();
+
+            }
         }
     }
 
@@ -139,6 +162,19 @@ public class GameScreen extends ScreenAdapter {
 
         if (Gdx.input.justTouched()) {
             world.jumper.makeJump();
+            if(engineSound==-1) {
+                engineSound = Assets.engineSound.loop();
+                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME);
+            }else {
+                Assets.engineSound.pause();
+               Assets.engineSound.resume();
+                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME);
+            }
+        }
+        if(world.jumper.state == Jumper.JUMPER_STATE_FALL){
+            if(engineSound != -1){
+                Assets.engineSound.pause();
+            }
         }
 
         // should work also with Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)
@@ -172,18 +208,13 @@ public class GameScreen extends ScreenAdapter {
     private void updatePaused() {
         if (Gdx.input.justTouched()) {
             guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
-
+            Assets.engineSound.stop();
             if (resumeBounds.contains(touchPoint.x, touchPoint.y)) {
                 Assets.playSound(Assets.clickSound);
                 state = GAME_RUNNING;
                 return;
             }
 
-            if (quitBounds.contains(touchPoint.x, touchPoint.y)) {
-                Assets.playSound(Assets.clickSound);
-                game.setScreen(new MainMenuScreen(game));
-                return;
-            }
         }
     }
 
@@ -198,10 +229,12 @@ public class GameScreen extends ScreenAdapter {
 
     private void updateGameOver() {
         if (Gdx.input.justTouched()) {
-            game.setScreen(new MainMenuScreen(game));
+            game.setScreen(new GameScreen(game));
         }
     }
 
+
+    ShapeRenderer sr;
     public void draw() {
         GL20 gl = Gdx.gl;
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -212,6 +245,9 @@ public class GameScreen extends ScreenAdapter {
         game.batcher.setProjectionMatrix(guiCam.combined);
         game.batcher.enableBlending();
         game.batcher.begin();
+        game.batcher.draw(Settings.soundEnabled ? Assets.instance.GUI.soundOn : Assets.instance.GUI.soundOff,
+                320 - 70, 480 - 32,32,32);
+
         switch (state) {
             case GAME_READY:
                 presentReady();
@@ -230,6 +266,13 @@ public class GameScreen extends ScreenAdapter {
                 break;
         }
         game.batcher.end();
+/*
+        sr.setProjectionMatrix(guiCam.combined);
+        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.setColor(Color.RED);
+        sr.rect(volumeControlBounds.x, volumeControlBounds.y,
+               volumeControlBounds.getWidth(), volumeControlBounds.height);
+        sr.end();*/
     }
 
     private void presentReady() {
@@ -237,7 +280,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void presentRunning() {
-        game.batcher.draw(Assets.pause, 320 - 64, 480 - 64, 64, 64);
+        game.batcher.draw(Assets.instance.GUI.pauseButton, 320 -32, 480 - 32, 32, 32);
         Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
         Assets.font.draw(game.batcher, altitudeString,16,480-42);
         game.batcher.setColor(Color.RED);
@@ -246,7 +289,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void presentPaused() {
-        game.batcher.draw(Assets.pauseMenu, 160 - 192 / 2, 240 - 96 / 2, 192, 96);
+        game.batcher.draw(Assets.instance.GUI.resumeButton, 160 - 48 / 2, 240 - 48 / 2, 48, 48);
         Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
     }
 
