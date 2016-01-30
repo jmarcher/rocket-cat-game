@@ -23,11 +23,14 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import uy.com.marcher.superjumper.Util.Animation;
 import uy.com.marcher.superjumper.Util.Constants;
@@ -46,8 +49,6 @@ public class Assets implements Disposable, AssetErrorListener{
 
     public static Texture background;
     public static TextureRegion backgroundRegion;
-
-    public static Texture dust;
     public static TextureRegion dustRegion;
 
     public static Texture items;
@@ -70,11 +71,7 @@ public class Assets implements Disposable, AssetErrorListener{
     public static Animation brakingPlatform;
     public static BitmapFont font;
     public static Music music;
-    public static Music menuMusic;
 
-    private static long menuMusicID;
-
-    public static Sound jumpSound;
     public static Sound highJumpSound;
     public static Sound hitSound;
     public static Sound coinSound;
@@ -86,11 +83,15 @@ public class Assets implements Disposable, AssetErrorListener{
 
     public AssetJumper jumper;
     public AssetsGUI GUI;
+    public AssetSister sister;
 
 
 
     public static FreeTypeFontGenerator fontGenerator;
     public static FreeTypeFontGenerator.FreeTypeFontParameter fontParameter;
+    public ShaderProgram blurShader;
+    public FrameBuffer fboA;
+    public FrameBuffer fboB;
 
     private Assets(){}
 
@@ -98,6 +99,7 @@ public class Assets implements Disposable, AssetErrorListener{
         this.assetManager = assetManager;
         assetManager.setErrorListener(this);
         assetManager.load(Constants.TEXTURE_ATLAS_OBJETS, TextureAtlas.class);
+        loadShaders();
         assetManager.finishLoading();
         Gdx.app.debug(TAG, "Assets loaded: #"+assetManager.getAssetNames().size);
         for (String a : assetManager.getAssetNames())
@@ -111,6 +113,24 @@ public class Assets implements Disposable, AssetErrorListener{
         //create the resources
         jumper = new AssetJumper(atlas);
         GUI = new AssetsGUI(atlas);
+        sister = new AssetSister(atlas);
+    }
+
+    private void loadShaders() {
+        blurShader = new ShaderProgram(Gdx.files.internal("data/shaders/blur.vert"),
+                Gdx.files.internal("data/shaders/blur.frag"));
+
+        fboA = new FrameBuffer(Pixmap.Format.RGBA8888, Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT, false);
+        fboB = new FrameBuffer(Pixmap.Format.RGBA8888, Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT, false);
+
+        if (!blurShader.isCompiled()) {
+            Gdx.app.error("Shader", blurShader.getLog());
+            Gdx.app.exit();
+        }
+
+        blurShader.begin();
+        blurShader.setUniformf("resolution", Constants.VIRTUAL_WIDTH);
+        blurShader.end();
     }
 
     public static Texture loadTexture(String file) {
@@ -171,10 +191,10 @@ public class Assets implements Disposable, AssetErrorListener{
         menuMusic.setVolume(0.5f);
        if(Settings.soundEnabled) menuMusic.play();*/
 
-        jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/jump.wav"));
-        highJumpSound = Gdx.audio.newSound(Gdx.files.internal("data/highjump.wav"));
+        highJumpSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/jump.mp3"));
         hitSound = Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
-        coinSound = Gdx.audio.newSound(Gdx.files.internal("data/coin.wav"));
+        coinSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/pickup.mp3"));
+
         clickSound = Gdx.audio.newSound(Gdx.files.internal("data/click.wav"));
         engineSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/rocketEngine.mp3"));
     }
@@ -192,7 +212,9 @@ public class Assets implements Disposable, AssetErrorListener{
     }
 
     public static void playSound(Sound sound) {
-        if (Settings.soundEnabled) sound.play(1);
+        if (Settings.soundEnabled) {
+            sound.play(Constants.EFFECTS_VOLUME);
+        }
     }
 
     @Override
@@ -204,6 +226,9 @@ public class Assets implements Disposable, AssetErrorListener{
     @Override
     public void dispose() {
         assetManager.dispose();
+        blurShader.dispose();
+        fboA.dispose();
+        fboB.dispose();
     }
 
 
@@ -219,6 +244,14 @@ public class Assets implements Disposable, AssetErrorListener{
         public AssetJumper(TextureAtlas atlas) {
             this.jumperRegion = atlas.findRegion("jumper");
             this.jumperDeadRegion = atlas.findRegion("jumper_dead");
+        }
+    }
+
+    public class AssetSister{
+        public final TextureAtlas.AtlasRegion sisterRegion;
+
+        public AssetSister(TextureAtlas atlas) {
+            this.sisterRegion = atlas.findRegion("sister");
         }
     }
 

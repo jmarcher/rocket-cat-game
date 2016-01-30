@@ -23,6 +23,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -73,7 +74,7 @@ public class GameScreen extends ScreenAdapter {
         worldListener = new WorldListener() {
             @Override
             public void jump() {
-                Assets.playSound(Assets.jumpSound);
+                //Assets.playSound(Assets.jumpSound);
             }
 
             @Override
@@ -164,11 +165,11 @@ public class GameScreen extends ScreenAdapter {
             world.jumper.makeJump();
             if(engineSound==-1) {
                 engineSound = Assets.engineSound.loop();
-                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME);
+                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME * 0.8f);
             }else {
                 Assets.engineSound.pause();
                Assets.engineSound.resume();
-                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME);
+                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME* 0.8f);
             }
         }
         if(world.jumper.state == Jumper.JUMPER_STATE_FALL){
@@ -233,13 +234,39 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void applyBlur(float blur) {
+        // Horizontal blur from FBO A to FBO B
+        Assets.instance.fboB.begin();
+        game.batcher.setShader(Assets.instance.blurShader);
+        Assets.instance.blurShader.setUniformf("dir", 1.0f, 0.0f);
+        Assets.instance.blurShader.setUniformf("radius", blur);
+        Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        drawTexture(Assets.instance.fboA.getColorBufferTexture(),  0.0f, 0.0f);
+        game.batcher.flush();
+        Assets.instance.fboB.end();
+
+        // Vertical blur from FBO B to the screen
+        Assets.instance.blurShader.setUniformf("dir", 0.0f, 1.0f);
+        Assets.instance.blurShader.setUniformf("radius", blur);
+        drawTexture(Assets.instance.fboB.getColorBufferTexture(), 0.0f, 0.0f);
+        game.batcher.flush();
+    }
 
     ShapeRenderer sr;
     public void draw() {
         GL20 gl = Gdx.gl;
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+
+
+        //Assets.instance.fboA.begin();
+        //game.batcher.setShader(null);
         renderer.render();
+        //game.batcher.flush();
+        //Assets.instance.fboA.end();
+        //applyBlur(3.0f);
+        //game.batcher.setShader(null);
 
         guiCam.update();
         game.batcher.setProjectionMatrix(guiCam.combined);
@@ -275,8 +302,30 @@ public class GameScreen extends ScreenAdapter {
         sr.end();*/
     }
 
+    private void drawTexture(Texture texture, float x, float y) {
+        int width = texture.getWidth();
+        int height = texture.getHeight();
+
+        game.batcher.draw(texture,
+                x, y,
+                0.0f, 0.0f,
+                width, height,
+                Constants.WORLD_TO_SCREEN, Constants.WORLD_TO_SCREEN,
+                0.0f,
+                0, 0,
+                width, height,
+                false, false);
+    }
+
     private void presentReady() {
         game.batcher.draw(Assets.ready, 160 - 192 / 2, 240 - 32 / 2, 192, 32);
+
+        //drawTexture(Assets.instance.sister.sisterRegion.getTexture(), 1.0f, 1.5f);
+        game.batcher.draw(Assets.instance.sister.sisterRegion,
+                Constants.VIRTUAL_WIDTH/2 - Assets.instance.sister.sisterRegion.getRegionWidth()/2,
+                0,
+                Assets.instance.sister.sisterRegion.getRegionWidth(),
+                Assets.instance.sister.sisterRegion.getRegionHeight());
     }
 
     private void presentRunning() {

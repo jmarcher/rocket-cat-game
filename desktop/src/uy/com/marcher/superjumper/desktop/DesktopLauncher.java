@@ -5,10 +5,11 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
 import uy.com.marcher.superjumper.SuperJumper;
+import uy.com.marcher.superjumper.Util.Constants;
 
 public class DesktopLauncher {
 
-    private static  boolean rebuildAtlas =true;
+    private static  boolean rebuildAtlas =false;
     private static boolean drawDebugOutline = false;
 
     public static void main(String[] arg) {
@@ -22,8 +23,8 @@ public class DesktopLauncher {
         }
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.title = "Super Jumper";
-        config.width = 480;
-        config.height = 800;
+        config.width = Constants.VIRTUAL_WIDTH;
+        config.height = Constants.VIRTUAL_HEIGHT;
         new LwjglApplication(new SuperJumper(), config);
     }
 }
