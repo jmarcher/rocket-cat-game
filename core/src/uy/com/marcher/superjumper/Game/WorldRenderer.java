@@ -237,6 +237,8 @@ public class WorldRenderer {
             Star star = world.stars.get(i);
             TextureRegion keyFrame = Assets.coinAnim.getKeyFrame(star.stateTime, Animation.ANIMATION_LOOPING);
             batch.draw(keyFrame, star.position.x - 0.5f, star.position.y - 0.5f, 1, 1);
+
+            batch.draw(Assets.instance.helpers.tunaCan, star.position.x  - 0.6f, star.position.y - 0.6f, 1.31f,1);
         }
     }
 
@@ -253,8 +255,4 @@ public class WorldRenderer {
         }
     }
 
-    private void renderCastle() {
-        Castle castle = world.castle;
-        batch.draw(Assets.castle, castle.position.x - 1, castle.position.y - 1, 2, 2);
-    }
 }

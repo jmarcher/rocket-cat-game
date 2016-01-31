@@ -9,7 +9,7 @@ import uy.com.marcher.superjumper.Util.Constants;
 
 public class DesktopLauncher {
 
-    private static  boolean rebuildAtlas =false;
+    private static  boolean rebuildAtlas =true;
     private static boolean drawDebugOutline = false;
 
     public static void main(String[] arg) {

@@ -368,3 +368,10 @@ star
   orig: 66, 64
   offset: 0, 0
   index: 2
+tunaCan
+  rotate: false
+  xy: 650, 45
+  size: 42, 32
+  orig: 42, 32
+  offset: 0, 0
+  index: -1

@@ -63,7 +63,6 @@ public class Assets implements Disposable, AssetErrorListener{
     public static TextureRegion arrow;
     public static TextureRegion pause;
     public static TextureRegion spring;
-    public static TextureRegion castle;
     public static Animation coinAnim;
     public static Animation springExplotion;
     public static Animation squirrelFly;
@@ -84,6 +83,7 @@ public class Assets implements Disposable, AssetErrorListener{
     public AssetJumper jumper;
     public AssetsGUI GUI;
     public AssetSister sister;
+    public AssetsHelpers helpers;
 
 
 
@@ -114,6 +114,7 @@ public class Assets implements Disposable, AssetErrorListener{
         jumper = new AssetJumper(atlas);
         GUI = new AssetsGUI(atlas);
         sister = new AssetSister(atlas);
+        helpers = new AssetsHelpers(atlas);
     }
 
     private void loadShaders() {
@@ -162,7 +163,6 @@ public class Assets implements Disposable, AssetErrorListener{
         pause = new TextureRegion(items, 64, 64, 64, 64);
 
         spring = new TextureRegion(catItemsKlein, 1089, 99, 73, 56);
-        castle = new TextureRegion(catItemsKlein, 869, 149, 62, 71);
         coinAnim = new Animation(0.1f, new TextureRegion(catItemsKlein, 783, 424, 66, 64), new TextureRegion(catItemsKlein, 865, 424, 65, 66),
                 new TextureRegion(catItemsKlein, 947, 424, 66, 64), new TextureRegion(catItemsKlein, 1025, 424, 66, 66));
 
@@ -182,20 +182,19 @@ public class Assets implements Disposable, AssetErrorListener{
         //font = new BitmapFont(Gdx.files.internal("data/newfont.fnt"), Gdx.files.internal("data/newfont.png"), false);
 
 
+        loadSound();
+    }
+
+    private static void loadSound() {
         music = Gdx.audio.newMusic(Gdx.files.internal("data/sounds/spacial.mp3"));
         music.setLooping(true);
         music.setVolume(0.5f);
 
-        /*menuMusic = Gdx.audio.newMusic(Gdx.files.internal("data/sounds/menu.mp3"));
-        menuMusic.setLooping(true);
-        menuMusic.setVolume(0.5f);
-       if(Settings.soundEnabled) menuMusic.play();*/
-
         highJumpSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/jump.mp3"));
-        hitSound = Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
+        hitSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/hit.wav"));
         coinSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/pickup.mp3"));
 
-        clickSound = Gdx.audio.newSound(Gdx.files.internal("data/click.wav"));
+        clickSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/click.wav"));
         engineSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/rocketEngine.mp3"));
     }
 
@@ -266,6 +265,14 @@ public class Assets implements Disposable, AssetErrorListener{
             this.resumeButton = atlas.findRegion("play");
             this.soundOff = atlas.findRegion("soundOff");
             this.soundOn = atlas.findRegion("soundOn");
+        }
+    }
+
+    public class AssetsHelpers{
+        public final TextureAtlas.AtlasRegion tunaCan;
+
+        public AssetsHelpers(TextureAtlas atlas){
+            tunaCan = atlas.findRegion("tunaCan");
         }
     }
 }
