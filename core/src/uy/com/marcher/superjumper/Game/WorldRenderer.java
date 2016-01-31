@@ -217,10 +217,7 @@ public class WorldRenderer {
     }
 
     private void renderItems() {
-        int len = world.springs.size();
-        for (int i = 0; i < len; i++) {
-            Spring spring = world.springs.get(i);
-
+        for (Spring spring : world.springs) {
             if (!spring.wasUsed) {
                 batch.draw(Assets.spring, spring.position.x - 0.1f, spring.position.y-0.1f, 0.8f, 0.8f);
             } else {
@@ -232,13 +229,10 @@ public class WorldRenderer {
             }
         }
 
-        len = world.stars.size();
-        for (int i = 0; i < len; i++) {
-            Star star = world.stars.get(i);
+        for (Star star : world.stars) {
             TextureRegion keyFrame = Assets.coinAnim.getKeyFrame(star.stateTime, Animation.ANIMATION_LOOPING);
-            batch.draw(keyFrame, star.position.x - 0.5f, star.position.y - 0.5f, 1, 1);
-
-            batch.draw(Assets.instance.helpers.tunaCan, star.position.x  - 0.6f, star.position.y - 0.6f, 1.31f,1);
+            batch.draw(keyFrame, star.position.x - 0.5f, star.position.y - 0.5f, 1f, 1f);
+//            batch.draw(Assets.instance.helpers.tunaCan, star.position.x  - 0.6f, star.position.y - 0.6f, 1.31f,1f);
         }
     }
 
