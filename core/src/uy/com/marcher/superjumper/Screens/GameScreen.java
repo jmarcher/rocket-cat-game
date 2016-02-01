@@ -33,6 +33,7 @@ import uy.com.marcher.superjumper.Game.Objects.Jumper;
 import uy.com.marcher.superjumper.Game.World;
 import uy.com.marcher.superjumper.Game.WorldRenderer;
 import uy.com.marcher.superjumper.Game.World.WorldListener;
+import uy.com.marcher.superjumper.Util.AdsController;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 import uy.com.marcher.superjumper.SuperJumper;
@@ -43,6 +44,9 @@ public class GameScreen extends ScreenAdapter {
     static final int GAME_PAUSED = 2;
     static final int GAME_LEVEL_END = 3;
     static final int GAME_OVER = 4;
+
+
+    private AdsController adsController;
 
     SuperJumper game;
 
@@ -101,6 +105,7 @@ public class GameScreen extends ScreenAdapter {
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
 
+        //if(game.actionResolver.isWifiConnected()) {game.actionResolver.showBannerAd();}
     }
 
     public void update(float deltaTime) {

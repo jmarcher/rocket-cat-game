@@ -20,17 +20,24 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Screens.GameScreen;
-import uy.com.marcher.superjumper.Screens.MainMenuScreen;
 import uy.com.marcher.superjumper.Screens.SplashScreen;
+import uy.com.marcher.superjumper.Util.ActionResolver;
 import uy.com.marcher.superjumper.Util.Settings;
 
-public class SuperJumper extends Game {
+public class SuperJumper extends Game implements GestureDetector.GestureListener {
     private static long SPLASH_MINIMUM_MILLIS = 950L;
+    public ActionResolver actionResolver;
     // used by all screens
     public SpriteBatch batcher;
+
+    public SuperJumper(ActionResolver actionResolver) {
+        this.actionResolver = actionResolver;
+    }
 
     @Override
     public void create() {
@@ -39,6 +46,8 @@ public class SuperJumper extends Game {
         setScreen(new SplashScreen());
         final long splash_start_time = System.currentTimeMillis();
         final SuperJumper instance = this;
+        GestureDetector gd = new GestureDetector(this);
+        Gdx.input.setInputProcessor(gd);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -80,5 +89,46 @@ public class SuperJumper extends Game {
     @Override
     public void render() {
         super.render();
+    }
+
+    @Override
+    public boolean touchDown(float x, float y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean tap(float x, float y, int count, int button) {
+        actionResolver.showOrLoadInterstital();
+        return true;
+    }
+
+    @Override
+    public boolean longPress(float x, float y) {
+        return false;
+    }
+
+    @Override
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY) {
+        return false;
+    }
+
+    @Override
+    public boolean panStop(float x, float y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
+        return false;
+    }
+
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
     }
 }

@@ -4,12 +4,14 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker.Settings;
+import com.sun.corba.se.spi.orbutil.fsm.Action;
 import uy.com.marcher.superjumper.SuperJumper;
+import uy.com.marcher.superjumper.Util.ActionResolver;
 import uy.com.marcher.superjumper.Util.Constants;
 
-public class DesktopLauncher {
+public class DesktopLauncher implements ActionResolver {
 
-    private static  boolean rebuildAtlas =true;
+    private static  boolean rebuildAtlas =false;
     private static boolean drawDebugOutline = false;
 
     public static void main(String[] arg) {
@@ -25,6 +27,11 @@ public class DesktopLauncher {
         config.title = "Super Jumper";
         config.width = Constants.VIRTUAL_WIDTH;
         config.height = Constants.VIRTUAL_HEIGHT;
-        new LwjglApplication(new SuperJumper(), config);
+        new LwjglApplication(new SuperJumper(new ActionResloverDesktop()), config);
+    }
+
+    @Override
+    public void showOrLoadInterstital() {
+        System.out.println("showOrLoadIntersitial()");
     }
 }
