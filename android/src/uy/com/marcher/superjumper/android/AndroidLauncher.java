@@ -48,12 +48,12 @@ public class AndroidLauncher extends AndroidApplication implements AdsController
         interstitialAd.setAdListener(new AdListener() {
             @Override
             public void onAdClosed() {
-                Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onAdLoaded() {
-                Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -83,12 +83,12 @@ public class AndroidLauncher extends AndroidApplication implements AdsController
                 public void run() {
                     if (interstitialAd.isLoaded()) {
                         interstitialAd.show();
-                        Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
                     }
                     else {
                         AdRequest interstitialRequest = new AdRequest.Builder().build();
                         interstitialAd.loadAd(interstitialRequest);
-                        Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

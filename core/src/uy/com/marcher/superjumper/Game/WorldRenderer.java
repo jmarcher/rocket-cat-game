@@ -79,14 +79,30 @@ public class WorldRenderer {
         drawSpringBounds(false);
         drawPlatformBounds(false);
         drawStarBounds(false);
+        drawTunaCanBounds(false);
+    }
+
+    private void drawTunaCanBounds(boolean render) {
+        if(!render)
+            return;
+        for(TunaCan tunaCan : world.tunaCans){
+            initializeShapeRender();
+            sr.rect(tunaCan.bounds.x, tunaCan.bounds.y,
+                    tunaCan.bounds.getWidth(), tunaCan.bounds.getHeight());
+            sr.end();
+        }
+    }
+
+    private void initializeShapeRender() {
+        sr.setProjectionMatrix(cam.combined);
+        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.setColor(Color.RED);
     }
 
     private void drawBobBounds(boolean render) {
         if(!render)
             return;
-        sr.setProjectionMatrix(cam.combined);
-        sr.begin(ShapeRenderer.ShapeType.Line);
-        sr.setColor(Color.RED);
+        initializeShapeRender();
         sr.rect(world.jumper.bounds.getX(), world.jumper.bounds.getY(),
                 world.jumper.bounds.getWidth(), world.jumper.bounds.getHeight());
         sr.end();
@@ -97,9 +113,7 @@ public class WorldRenderer {
             return;
         int len = world.platforms.size();
         for (int i = 0; i < len; i++) {
-            sr.setProjectionMatrix(cam.combined);
-            sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(Color.RED);
+            initializeShapeRender();
             sr.rect(world.platforms.get(i).bounds.x, world.platforms.get(i).bounds.y,
                     world.platforms.get(i).bounds.getWidth(), world.platforms.get(i).bounds.getHeight());
             sr.end();
@@ -111,9 +125,7 @@ public class WorldRenderer {
             return;
         int len = world.stars.size();
         for (int i = 0; i < len; i++) {
-            sr.setProjectionMatrix(cam.combined);
-            sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(Color.RED);
+            initializeShapeRender();
             sr.rect(world.stars.get(i).bounds.x, world.stars.get(i).bounds.y,
                     world.stars.get(i).bounds.getWidth(), world.stars.get(i).bounds.getHeight());
             sr.end();
@@ -125,9 +137,7 @@ public class WorldRenderer {
             return;
         int len = world.enemies.size();
         for (int i = 0; i < len; i++) {
-            sr.setProjectionMatrix(cam.combined);
-            sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(Color.RED);
+            initializeShapeRender();
             sr.rect(world.enemies.get(i).bounds.x, world.enemies.get(i).bounds.y,
                     world.enemies.get(i).bounds.getWidth(), world.enemies.get(i).bounds.getHeight());
             sr.end();
@@ -139,9 +149,7 @@ public class WorldRenderer {
             return;
         int len = world.springs.size();
         for (int i = 0; i < len; i++) {
-            sr.setProjectionMatrix(cam.combined);
-            sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(Color.RED);
+            initializeShapeRender();
             sr.rect(world.springs.get(i).bounds.x, world.springs.get(i).bounds.y,
                     world.springs.get(i).bounds.getWidth(), world.springs.get(i).bounds.getHeight());
             sr.end();
@@ -174,7 +182,13 @@ public class WorldRenderer {
             batch.draw(keyFrame, world.jumper.position.x - 1.1f, world.jumper.position.y - 0.5f,
                     (world.jumper.lookingAtSide * 1) * SCALE_RATE, (1.336f) * SCALE_RATE);
 
+        batch.setColor(1f,1f,1f,1f);
+    }
 
+    private boolean onlyVisibleRangeRender(GameObject object) {
+        if(object.position.y>= world.heightSoFar-10f && object.position.y <= world.heightSoFar+10f)
+            return true;
+        return false;
     }
 
     private void renderClouds() {
@@ -182,10 +196,12 @@ public class WorldRenderer {
         Color c = batch.getColor();
         for (int i = 0; i < len; i++) {
             Cloud cloud = world.clouds.get(i);
-
+            if(!onlyVisibleRangeRender(cloud))
+                continue;
             batch.setColor(c.r,c.g,c.b,world.clouds.get(i).getAlpha());
-            batch.draw(Assets.dustRegion, cloud.position.x,
-                    cloud.position.y, 0, 0 , Assets.dustRegion.getRegionWidth()/40,  Assets.dustRegion.getRegionHeight()/40,1,1, cloud.rotation);
+            batch.draw(Assets.instance.decorations.cloud, cloud.position.x,
+                    cloud.position.y, 0, 0 , Assets.instance.decorations.cloud.getRegionWidth()/40,
+                    Assets.instance.decorations.cloud.getRegionHeight()/40,1,1, cloud.rotation);
         }
         batch.setColor(c.r,c.g,c.b,1.0f);
     }
@@ -195,10 +211,12 @@ public class WorldRenderer {
         Color c = batch.getColor();
         for (int i = 0; i < len; i++) {
             Cloud cloud = world.frontClouds.get(i);
-
+            if(!onlyVisibleRangeRender(cloud))
+                continue;
             batch.setColor(c.r,c.g,c.b,world.frontClouds.get(i).getAlpha());
-            batch.draw(Assets.dustRegion, cloud.position.x,
-                    cloud.position.y, 0, 0 , Assets.dustRegion.getRegionWidth()/40,  Assets.dustRegion.getRegionHeight()/40,1,1, cloud.rotation);
+            batch.draw(Assets.instance.decorations.cloud, cloud.position.x,
+                    cloud.position.y, 0, 0 , Assets.instance.decorations.cloud.getRegionWidth()/40,
+                    Assets.instance.decorations.cloud.getRegionHeight()/40,1,1, cloud.rotation);
         }
         batch.setColor(c.r,c.g,c.b,1.0f);
     }
@@ -207,9 +225,12 @@ public class WorldRenderer {
         int len = world.platforms.size();
         for (int i = 0; i < len; i++) {
             Platform platform = world.platforms.get(i);
-            TextureRegion keyFrame = Assets.platform;
+            if(!onlyVisibleRangeRender(platform))
+                continue;
+            TextureRegion keyFrame = Assets.instance.helpers.platform;
             if (platform.state == Platform.PLATFORM_STATE_PULVERIZING) {
-                keyFrame = Assets.brakingPlatform.getKeyFrame(platform.stateTime, Animation.ANIMATION_NONLOOPING);
+                keyFrame = Assets.instance.helpers.platformAnimation.getKeyFrame(platform.stateTime,
+                        Animation.ANIMATION_NONLOOPING);
             }
 
             batch.draw(keyFrame, platform.position.x - 1, platform.position.y - 0.25f, 2 * SCALE_RATE, 0.5f * SCALE_RATE);
@@ -217,20 +238,44 @@ public class WorldRenderer {
     }
 
     private void renderItems() {
+        renderSprings();
+
+        renderStars();
+
+        renderTunaCans();
+    }
+
+    private void renderTunaCans() {
+        for (TunaCan tunaCan : world.tunaCans) {
+            if(!onlyVisibleRangeRender(tunaCan))
+                continue;
+            TextureRegion tunaCanRegion = Assets.instance.helpers.tunaCan;
+            batch.draw(tunaCanRegion, tunaCan.position.x - 0.5f, tunaCan.position.y - 0.5f, 1, 1);
+        }
+    }
+
+    private void renderSprings() {
         for (Spring spring : world.springs) {
+            if(!onlyVisibleRangeRender(spring))
+                continue;
             if (!spring.wasUsed) {
-                batch.draw(Assets.spring, spring.position.x - 0.1f, spring.position.y-0.1f, 0.8f, 0.8f);
+                batch.draw(Assets.instance.helpers.spring, spring.position.x - 0.1f, spring.position.y-0.1f, 0.8f, 0.8f);
             } else {
                 Gdx.app.debug("Spring", "Animation?");
-                TextureRegion keyFrame = Assets.springExplotion.getKeyFrame(spring.stateTime, Animation.ANIMATION_NONLOOPING);
+                TextureRegion keyFrame = Assets.instance.helpers.springAnimation.getKeyFrame(spring.stateTime, Animation.ANIMATION_NONLOOPING);
                 batch.draw(keyFrame, spring.position.x, spring.position.y,
-                        (keyFrame.getTexture().getWidth()*0.8f)/Assets.spring.getTexture().getWidth(),
-                        (keyFrame.getTexture().getHeight()*0.8f)/Assets.spring.getTexture().getHeight());
+                        (keyFrame.getTexture().getWidth()*0.8f)/keyFrame.getTexture().getWidth(),
+                        (keyFrame.getTexture().getHeight()*0.8f)/keyFrame.getTexture().getHeight());
             }
         }
+    }
 
+    private void renderStars() {
         for (Star star : world.stars) {
-            TextureRegion keyFrame = Assets.coinAnim.getKeyFrame(star.stateTime, Animation.ANIMATION_LOOPING);
+            if(!onlyVisibleRangeRender(star))
+                continue;
+            TextureRegion keyFrame = Assets.instance.helpers.starAnimation.getKeyFrame(star.stateTime,
+                    Animation.ANIMATION_LOOPING);
             batch.draw(keyFrame, star.position.x - 0.5f, star.position.y - 0.5f, 1, 1);
 
             //batch.draw(Assets.instance.helpers.tunaCan, star.position.x  - 0.6f, star.position.y - 0.6f, 1.31f,1);
@@ -241,7 +286,9 @@ public class WorldRenderer {
         int len = world.enemies.size();
         for (int i = 0; i < len; i++) {
             Enemy enemy = world.enemies.get(i);
-            TextureRegion keyFrame = Assets.squirrelFly.getKeyFrame(enemy.stateTime, Animation.ANIMATION_LOOPING);
+            if(!onlyVisibleRangeRender(enemy))
+                continue;
+            TextureRegion keyFrame = Assets.instance.enemies.deathBaloon;
             float side = enemy.velocity.x < 0 ? -1 : 1;
             if (side < 0)
                 batch.draw(keyFrame, enemy.position.x + 0.5f, enemy.position.y - 0.5f, side * 1, 1.6f);

@@ -35,7 +35,7 @@ public class Cloud extends DynamicGameObject {
     }
 
     private void init(){
-        dustRegion = Assets.dustRegion;
+        dustRegion = Assets.instance.decorations.cloud;
         dimension.set(World.WORLD_WIDTH, World.WORLD_HEIGHT);
         origin.x = -dimension.x *2;
         length += dimension.y *2;

@@ -21,7 +21,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Game.World;
+import uy.com.marcher.superjumper.Util.Constants;
 
 public class Jumper extends DynamicGameObject {
 
@@ -33,11 +36,17 @@ public class Jumper extends DynamicGameObject {
     public static final float JUMPER_MOVE_VELOCITY = 20;
     public static final float JUMPER_WIDTH = 1f;
     public static final float JUMPER_HEIGHT = 1.2f;
+
+    public static final float TUNACAN_TIME = 10f;
+
     public ParticleEffect fireParticle = new ParticleEffect();
 
     public int state;
     public float stateTime;
     public float lookingAtSide;
+
+    public float tunaCanLeftTime;
+    public World world;
 
     public Jumper(float x, float y) {
         super(x, y, JUMPER_WIDTH, JUMPER_HEIGHT);
@@ -47,11 +56,28 @@ public class Jumper extends DynamicGameObject {
         fireParticle.flipY();
         fireParticle.scaleEffect(.01f);
         lookingAtSide = 1;
+        tunaCanLeftTime = 0f;
         //fireEmitter = fireParticle.getEmitters().first();
         //fireParticle.start();
     }
 
+    public World getWorld() {
+        return world;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
     public void update(float deltaTime) {
+        if(tunaCanLeftTime > 0){
+            tunaCanLeftTime -= deltaTime;
+            if(tunaCanLeftTime <= 0){
+                tunaCanLeftTime = 0;
+                this.velocity.y = getJumperVelocity();
+               // System.out.println("termina tuna can");
+            }
+        }
         velocity.add(World.gravity.x * deltaTime, World.gravity.y * deltaTime);
         position.add(velocity.x * deltaTime, velocity.y * deltaTime);
         bounds.x = position.x - bounds.width / 2;
@@ -60,7 +86,7 @@ public class Jumper extends DynamicGameObject {
         if(velocity.y > 0 && state == JUMPER_STATE_JUMP){
             //fireParticle.getEmitters().first().setMaxParticleCount(this.maxParticleCount);
             fireParticle.getEmitters().first().setContinuous(true);
-            fireParticle.setPosition(this.position.x -0.3f, this.position.y-0.3f);
+            fireParticle.setPosition(this.position.x - 0.3f, this.position.y - 0.3f);
             fireParticle.allowCompletion();
             fireParticle.start();
         }else{
@@ -97,9 +123,16 @@ public class Jumper extends DynamicGameObject {
      */
     public void render(SpriteBatch batch) {
         fireParticle.draw(batch);
+        if(tunaCanLeftTime > 2f)
+            batch.setColor(1.0f,1.0f,0.25f,1.0f);
+        if(tunaCanLeftTime> 0f && tunaCanLeftTime <= 2f && MathUtils.round(tunaCanLeftTime * 10f)%2 == 0 ){
+            batch.setColor(1.0f,1.0f,0.25f,1.0f);
+        }else if(tunaCanLeftTime> 0f && tunaCanLeftTime <= 2f){
+            batch.setColor(1.0f,1.0f,0.25f,.5f);
+        }
     }
 
-    public void hitSquirrel() {
+    public void hitEnemy() {
         velocity.set(0, 0);
         state = JUMPER_STATE_HIT;
         stateTime = 0;
@@ -111,14 +144,28 @@ public class Jumper extends DynamicGameObject {
     }
 
     public void makeJump(){
-        velocity.y = JUMPER_JUMP_VELOCITY;
+        velocity.y = getJumperVelocity();
         state= JUMPER_STATE_JUMP;
         stateTime = 0;
+    }
+
+    private float getJumperVelocity() {
+        if(tunaCanLeftTime > 0f)
+            return JUMPER_JUMP_VELOCITY *2.5f;
+        return JUMPER_JUMP_VELOCITY;
     }
 
     public void hitSpring() {
         velocity.y = JUMPER_JUMP_VELOCITY * 2.5f;
         state = JUMPER_STATE_JUMP;
         stateTime = 0;
+    }
+
+    public void hitTunaCan() {
+      tunaCanLeftTime = TUNACAN_TIME;
+    }
+
+    public boolean isDead() {
+        return state == JUMPER_STATE_HIT;
     }
 }

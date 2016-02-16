@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class GameObject {
     public final Vector2 position;
-    public final Rectangle bounds;
+    public Rectangle bounds;
     public Vector2 origin;
     public Vector2 dimension;
     public Vector2 scale;

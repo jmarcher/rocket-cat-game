@@ -16,7 +16,6 @@
 
 package uy.com.marcher.superjumper.Game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import uy.com.marcher.superjumper.Game.Objects.*;
@@ -41,6 +40,7 @@ public class World {
     public final List<Spring> springs;
     public final List<Enemy> enemies;
     public final List<Star> stars;
+    public final List<TunaCan> tunaCans;
     public final List<Cloud> clouds;
     public final List<Cloud> frontClouds;
 
@@ -52,12 +52,14 @@ public class World {
     public int state;
     public World(WorldListener listener) {
         this.jumper = new Jumper(5, 1);
+        this.jumper.setWorld(this);
         this.platforms = new ArrayList<Platform>();
         this.springs = new ArrayList<Spring>();
         this.enemies = new ArrayList<Enemy>();
         this.stars = new ArrayList<Star>();
         this.clouds = new ArrayList<Cloud>();
         this.frontClouds = new ArrayList<Cloud>();
+        this.tunaCans = new ArrayList<TunaCan>();
         this.listener = listener;
         randomizer = new Random();
         generateLevel();
@@ -100,7 +102,7 @@ public class World {
             }
 
            // enemies.add(new Enemy(1f,3f)); //FIXME: Solo para probar
-            if (y > WORLD_HEIGHT / 10 && randomizer.nextFloat() > 0.8f) {//FIXME: No hay enemigos para probar
+            if (y > WORLD_HEIGHT / 15 && randomizer.nextFloat() > 0.8f) {//FIXME: No hay enemigos para probar
                 Enemy enemy = new Enemy(platform.position.x + randomizer.nextFloat(), platform.position.y
                         + Enemy.ENEMY_HEIGHT + randomizer.nextFloat() * 2);
                 enemies.add(enemy);
@@ -110,6 +112,12 @@ public class World {
                 Star star = new Star(platform.position.x + randomizer.nextFloat(), platform.position.y + Star.STAR_HEIGHT
                         + randomizer.nextFloat() * 3);
                 stars.add(star);
+            }
+
+            if (y > WORLD_HEIGHT / 15 && randomizer.nextFloat() > 0.99f) {
+                TunaCan tunaCan = new TunaCan(platform.position.x + randomizer.nextFloat(), platform.position.y + Star.STAR_HEIGHT
+                        + randomizer.nextFloat() * 3);
+                tunaCans.add(tunaCan);
             }
 
             y += (maxJumpHeight - 0.5f);
@@ -122,17 +130,18 @@ public class World {
     public void update(float deltaTime, float accelX) {
 
         slowMotionFactor += 0.0001f;
-        Gdx.app.debug("Slowmode", (slowMotionFactor)+ "");
         deltaTime = deltaTime * slowMotionFactor;
         updateBob(deltaTime, accelX);
         updatePlatforms(deltaTime);
         updateSquirrels(deltaTime);
+        updateTunaCans(deltaTime);
         updateCoins(deltaTime);
         updateSprings(deltaTime);
         updateDusts(deltaTime);
         if (jumper.state != Jumper.JUMPER_STATE_HIT) checkCollisions();
         checkGameOver();
     }
+
 
     private void updateBob(float deltaTime, float accelX) {
         if (jumper.state != Jumper.JUMPER_STATE_HIT && jumper.position.y <= 0.3f) jumper.hitPlatform();
@@ -145,6 +154,8 @@ public class World {
         int len = platforms.size();
         for (int i = 0; i < len; i++) {
             Platform platform = platforms.get(i);
+            if(!onlyVisibleRangeUpdate(platform))
+                continue;
             platform.update(deltaTime);
             if (platform.state == Platform.PLATFORM_STATE_PULVERIZING && platform.stateTime > Platform.PLATFORM_PULVERIZE_TIME) {
                 platforms.remove(platform);
@@ -154,25 +165,38 @@ public class World {
     }
 
     private void updateDusts(float deltaTime) {
-        int len = clouds.size();
-        for (int i = 0; i < len; i++) {
-            Cloud cloud = clouds.get(i);
+        for(Cloud cloud : clouds){
+            if(!onlyVisibleRangeUpdate(cloud))
+                continue;
             cloud.update(deltaTime);
         }
     }
 
+    private boolean onlyVisibleRangeUpdate(GameObject object) {
+        if(object.position.y>= heightSoFar-10f && object.position.y <= heightSoFar+10f)
+            return true;
+        return false;
+    }
+
     private void updateSquirrels(float deltaTime) {
-        int len = enemies.size();
-        for (int i = 0; i < len; i++) {
-            Enemy enemy = enemies.get(i);
+        for(Enemy enemy :enemies){
+            if(!onlyVisibleRangeUpdate(enemy))
+                continue;
             enemy.update(deltaTime);
         }
     }
 
+    private void updateTunaCans(float deltaTime) {
+        for(TunaCan tunaCan : tunaCans){
+            tunaCan.update(deltaTime);
+        }
+    }
+
+
     private void updateCoins(float deltaTime) {
-        int len = stars.size();
-        for (int i = 0; i < len; i++) {
-            Star star = stars.get(i);
+        for(Star star : stars){
+            if(!onlyVisibleRangeUpdate(star))
+                continue;
             star.update(deltaTime);
         }
     }
@@ -180,24 +204,26 @@ public class World {
     private void updateSprings(float deltaTime) {
         int len = springs.size();
         for (int i = 0; i < len; i++) {
+
             Spring spring = springs.get(i);
+            if(!onlyVisibleRangeUpdate(spring))
+                continue;
             spring.update(deltaTime);
         }
     }
 
     private void checkCollisions() {
         checkPlatformCollisions();
-        checkSquirrelCollisions();
+        checkEnemyCollisions();
         checkItemCollisions();
+        checkTunaCansCollisions();
         //checkCastleCollisions();
     }
 
     private void checkPlatformCollisions() {
         if (jumper.velocity.y > 0) return;
 
-        int len = platforms.size();
-        for (int i = 0; i < len; i++) {
-            Platform platform = platforms.get(i);
+        for(Platform platform : platforms){
             if (jumper.position.y > platform.position.y) {
                 if (jumper.bounds.overlaps(platform.bounds)) {
                     //jumper.hitPlatform();
@@ -212,13 +238,21 @@ public class World {
         }
     }
 
-    private void checkSquirrelCollisions() {
-        int len = enemies.size();
-        for (int i = 0; i < len; i++) {
-            Enemy enemy = enemies.get(i);
+    private void checkEnemyCollisions() {
+        for(Enemy enemy : enemies){
             if (enemy.bounds.overlaps(jumper.bounds)) {
-                jumper.hitSquirrel();
+                jumper.hitEnemy();
                 listener.hit();
+            }
+        }
+    }
+
+    private void checkTunaCansCollisions(){
+        for(TunaCan tunaCan : tunaCans){
+            if(tunaCan.bounds.overlaps(jumper.bounds)){
+                jumper.hitTunaCan();
+                listener.tunaCan();
+                score += TunaCan.GetScore();
             }
         }
     }
@@ -251,25 +285,22 @@ public class World {
         }
     }
 
-    private void checkCastleCollisions() {
-        if (castle.bounds.overlaps(jumper.bounds)) {
-            state = WORLD_STATE_NEXT_LEVEL;
-        }
-    }
 
     private void checkGameOver() {
         if (heightSoFar - 7.5f > jumper.position.y) {
             state = WORLD_STATE_GAME_OVER;
+            Assets.stopAllSound();
         }
     }
 
     public interface WorldListener {
-        public void jump();
 
-        public void highJump();
+        void highJump();
 
-        public void hit();
+        void hit();
 
-        public void coin();
+        void coin();
+
+        void tunaCan();
     }
 }

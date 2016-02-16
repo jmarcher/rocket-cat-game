@@ -31,12 +31,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.utils.Disposable;
 import uy.com.marcher.superjumper.Util.Animation;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 
-import java.util.Set;
+import java.util.ArrayList;
 
 public class Assets implements Disposable, AssetErrorListener{
     private static final String TAG = Assets.class.getName();
@@ -49,25 +50,7 @@ public class Assets implements Disposable, AssetErrorListener{
 
     public static Texture background;
     public static TextureRegion backgroundRegion;
-    public static TextureRegion dustRegion;
 
-    public static Texture items;
-    public static TextureRegion mainMenu;
-    public static TextureRegion pauseMenu;
-    public static TextureRegion ready;
-    public static TextureRegion gameOver;
-    public static TextureRegion highScoresRegion;
-    public static TextureRegion logo;
-    public static TextureRegion soundOn;
-    public static TextureRegion soundOff;
-    public static TextureRegion arrow;
-    public static TextureRegion pause;
-    public static TextureRegion spring;
-    public static Animation coinAnim;
-    public static Animation springExplotion;
-    public static Animation squirrelFly;
-    public static TextureRegion platform;
-    public static Animation brakingPlatform;
     public static BitmapFont font;
     public static Music music;
 
@@ -76,14 +59,16 @@ public class Assets implements Disposable, AssetErrorListener{
     public static Sound coinSound;
     public static Sound clickSound;
     public static Sound engineSound;
-
-    private static Texture catItemsKlein;
+    public static Sound tunaCanSound;
+    public static ArrayList<Long> soundIds = new ArrayList<Long>();
 
 
     public AssetJumper jumper;
     public AssetsGUI GUI;
     public AssetSister sister;
     public AssetsHelpers helpers;
+    public AssetsDecorations decorations;
+    public AssetsEnemies enemies;
 
 
 
@@ -99,7 +84,8 @@ public class Assets implements Disposable, AssetErrorListener{
         this.assetManager = assetManager;
         assetManager.setErrorListener(this);
         assetManager.load(Constants.TEXTURE_ATLAS_OBJETS, TextureAtlas.class);
-        loadShaders();
+
+        loadNonTextureAssets();
         assetManager.finishLoading();
         Gdx.app.debug(TAG, "Assets loaded: #"+assetManager.getAssetNames().size);
         for (String a : assetManager.getAssetNames())
@@ -115,6 +101,8 @@ public class Assets implements Disposable, AssetErrorListener{
         GUI = new AssetsGUI(atlas);
         sister = new AssetSister(atlas);
         helpers = new AssetsHelpers(atlas);
+        decorations = new AssetsDecorations(atlas);
+        enemies = new AssetsEnemies(atlas);
     }
 
     private void loadShaders() {
@@ -136,53 +124,16 @@ public class Assets implements Disposable, AssetErrorListener{
 
     public static Texture loadTexture(String file) {
         Texture texture = new Texture(Gdx.files.internal(file));
-        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Linear);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         return texture;
     }
 
-    public static void load() {
+    public void loadNonTextureAssets() {
         loadFont();
-
-        items = loadTexture("data/items.png");
-        catItemsKlein = loadTexture("data/rocket_cat_klein.png");
-
         background = loadTexture("data/bg_parallax_stars_640x1600.png");
         backgroundRegion = new TextureRegion(background, 0, 0, 640, 972);
-
-        dustRegion = new TextureRegion(catItemsKlein, 475, 524, 187, 100);
-
-        mainMenu = new TextureRegion(items, 0, 224, 300, 110);
-        pauseMenu = new TextureRegion(items, 224, 128, 192, 96);
-        ready = new TextureRegion(items, 320, 224, 192, 32);
-        gameOver = new TextureRegion(items, 352, 256, 160, 96);
-        highScoresRegion = new TextureRegion(Assets.items, 0, 257, 300, 110 / 3);
-        logo = new TextureRegion(items, 0, 352, 274, 142);
-        soundOff = new TextureRegion(items, 0, 0, 64, 64);
-        soundOn = new TextureRegion(items, 64, 0, 64, 64);
-        arrow = new TextureRegion(items, 0, 64, 64, 64);
-        pause = new TextureRegion(items, 64, 64, 64, 64);
-
-        spring = new TextureRegion(catItemsKlein, 1089, 99, 73, 56);
-        coinAnim = new Animation(0.1f, new TextureRegion(catItemsKlein, 783, 424, 66, 64), new TextureRegion(catItemsKlein, 865, 424, 65, 66),
-                new TextureRegion(catItemsKlein, 947, 424, 66, 64), new TextureRegion(catItemsKlein, 1025, 424, 66, 66));
-
-        platform = new TextureRegion(catItemsKlein, 578, 742, 237, 109);
-        brakingPlatform = new Animation(0.2f, new TextureRegion(catItemsKlein, 578, 742, 237, 109),
-                new TextureRegion(catItemsKlein, 35, 12, 254, 131),
-                new TextureRegion(catItemsKlein, 319, 0, 263, 143),
-                new TextureRegion(catItemsKlein, 625, 0, 254, 150));
-
-        squirrelFly = new Animation(0.2f, new TextureRegion(catItemsKlein, 3, 1224, 145, 231));
-
-        springExplotion = new Animation(0.3f, new TextureRegion(catItemsKlein, 1089, 99, 73, 56),
-                new TextureRegion(catItemsKlein, 989, 66, 73, 40),
-                new TextureRegion(catItemsKlein, 989, 126, 73, 30),
-                new TextureRegion(catItemsKlein, 989, 66, 73, 40),
-                new TextureRegion(catItemsKlein, 1089, 99, 73, 56));
-        //font = new BitmapFont(Gdx.files.internal("data/newfont.fnt"), Gdx.files.internal("data/newfont.png"), false);
-
-
         loadSound();
+        loadShaders();
     }
 
     private static void loadSound() {
@@ -196,6 +147,7 @@ public class Assets implements Disposable, AssetErrorListener{
 
         clickSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/click.wav"));
         engineSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/rocketEngine.mp3"));
+        tunaCanSound = Gdx.audio.newSound(Gdx.files.internal("data/sounds/tunaCan.wav"));
     }
 
     private static void loadFont() {
@@ -212,13 +164,24 @@ public class Assets implements Disposable, AssetErrorListener{
 
     public static void playSound(Sound sound) {
         if (Settings.soundEnabled) {
-            sound.play(Constants.EFFECTS_VOLUME);
+            long soundId = sound.play(Constants.EFFECTS_VOLUME);
+            soundIds.add(soundId);
         }
+    }
+
+    public static void stopAllSound(){
+        music.stop();
+        highJumpSound.stop();
+        hitSound.stop();
+        engineSound.stop();
+        coinSound.stop();
+        clickSound.stop();
+        tunaCanSound.stop();
     }
 
     @Override
     public void error(AssetDescriptor asset, Throwable throwable) {
-        Gdx.app.error(TAG,"Couldn't load asset '" + asset.fileName + "'", throwable);
+        Gdx.app.error(TAG,"Couldn't loadNonTextureAssets asset '" + asset.fileName + "'", throwable);
     }
 
 
@@ -268,11 +231,46 @@ public class Assets implements Disposable, AssetErrorListener{
         }
     }
 
+    public class AssetsDecorations{
+        public final TextureAtlas.AtlasRegion cloud;
+
+        public AssetsDecorations(TextureAtlas atlas){
+            cloud = atlas.findRegion("cloud");
+        }
+    }
+
+    public class AssetsEnemies{
+        public final TextureAtlas.AtlasRegion deathBaloon;
+
+        public AssetsEnemies(TextureAtlas atlas){
+            deathBaloon = atlas.findRegion("deathBaloon");
+        }
+    }
+
     public class AssetsHelpers{
         public final TextureAtlas.AtlasRegion tunaCan;
+        public final Animation springAnimation;
+        public final TextureAtlas.AtlasRegion spring;
+        public final TextureAtlas.AtlasRegion platform;
+        public final Animation platformAnimation;
+        public final Animation starAnimation;
 
         public AssetsHelpers(TextureAtlas atlas){
+
             tunaCan = atlas.findRegion("tunaCan");
+            springAnimation = new Animation(0.3f, atlas.findRegion("spring_open"),
+                    atlas.findRegion("spring_middle"),
+                    atlas.findRegion("spring_contracted"),
+                    atlas.findRegion("spring_middle"),
+                    atlas.findRegion("spring_open"));
+
+            spring = atlas.findRegion("spring_open");
+
+
+            platform = atlas.findRegion("platform");
+            platformAnimation = new Animation(0.3f, atlas.findRegions("platform"));
+            starAnimation = new Animation(0.2f, atlas.findRegions("star"));
+
         }
     }
 }

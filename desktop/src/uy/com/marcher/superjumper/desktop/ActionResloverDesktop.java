@@ -8,6 +8,6 @@ import uy.com.marcher.superjumper.Util.ActionResolver;
 public class ActionResloverDesktop implements ActionResolver {
     @Override
     public void showOrLoadInterstital() {
-        System.out.println("showOrLoadInterstitial()");
+        //System.out.println("showOrLoadInterstitial()");
     }
 }

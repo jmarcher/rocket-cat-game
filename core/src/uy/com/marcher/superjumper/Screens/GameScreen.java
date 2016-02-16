@@ -76,10 +76,6 @@ public class GameScreen extends ScreenAdapter {
         guiCam.position.set(320 / 2, 480 / 2, 0);
         touchPoint = new Vector3();
         worldListener = new WorldListener() {
-            @Override
-            public void jump() {
-                //Assets.playSound(Assets.jumpSound);
-            }
 
             @Override
             public void highJump() {
@@ -94,6 +90,11 @@ public class GameScreen extends ScreenAdapter {
             @Override
             public void coin() {
                 Assets.playSound(Assets.coinSound);
+            }
+
+            @Override
+            public void tunaCan(){
+                Assets.playSound(Assets.tunaCanSound);
             }
         };
         world = new World(worldListener);
@@ -116,6 +117,7 @@ public class GameScreen extends ScreenAdapter {
 
             if (volumeControlBounds.contains(touchPoint.x, touchPoint.y)) {
                 Assets.playSound(Assets.clickSound);
+                Assets.stopAllSound();
                 Settings.soundEnabled = !Settings.soundEnabled;
                 if (Settings.soundEnabled)
                     Assets.music.play();
@@ -167,18 +169,21 @@ public class GameScreen extends ScreenAdapter {
         ApplicationType appType = Gdx.app.getType();
 
         if (Gdx.input.justTouched()) {
-            world.jumper.makeJump();
-            if(engineSound==-1) {
-                engineSound = Assets.engineSound.loop();
-                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME * 0.8f);
-            }else {
-                Assets.engineSound.pause();
-               Assets.engineSound.resume();
-                Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME* 0.8f);
+            if(!world.jumper.isDead())
+                world.jumper.makeJump();
+            if(Settings.soundEnabled) {
+                if (engineSound == -1) {
+                    engineSound = Assets.engineSound.loop();
+                    Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME * 0.8f);
+                } else {
+                    Assets.engineSound.pause();
+                    Assets.engineSound.resume();
+                    Assets.engineSound.setVolume(engineSound, Constants.EFFECTS_VOLUME * 0.8f);
+                }
             }
         }
         if(world.jumper.state == Jumper.JUMPER_STATE_FALL){
-            if(engineSound != -1){
+            if(engineSound != -1 && Settings.soundEnabled){
                 Assets.engineSound.pause();
             }
         }
@@ -192,13 +197,10 @@ public class GameScreen extends ScreenAdapter {
             if (Gdx.input.isKeyPressed(Keys.DPAD_RIGHT)) accel = -5f;
             world.update(deltaTime, accel);
         }
-        altitudeString = Math.round(world.heightSoFar) + " m";
+        setAltitudeString();
         if (world.score != lastScore) {
             lastScore = world.score;
             scoreString = "SCORE: " + lastScore;
-        }
-        if (world.state == World.WORLD_STATE_NEXT_LEVEL) {
-            game.setScreen(new WinScreen(game));
         }
         if (world.state == World.WORLD_STATE_GAME_OVER) {
             state = GAME_OVER;
@@ -209,6 +211,10 @@ public class GameScreen extends ScreenAdapter {
             Settings.addScore(lastScore);
             Settings.save();
         }
+    }
+
+    private void setAltitudeString() {
+        altitudeString = Math.round(world.heightSoFar) + " m";
     }
 
     private void updatePaused() {
@@ -267,7 +273,9 @@ public class GameScreen extends ScreenAdapter {
 
         //Assets.instance.fboA.begin();
         //game.batcher.setShader(null);
+
         renderer.render();
+
         //game.batcher.flush();
         //Assets.instance.fboA.end();
         //applyBlur(3.0f);
@@ -323,7 +331,11 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void presentReady() {
-        game.batcher.draw(Assets.ready, 160 - 192 / 2, 240 - 32 / 2, 192, 32);
+        Assets.font.draw(game.batcher, "Can you help my brother? \n\n" +
+                "He dreams on \n" +
+                "\ntraveling space \n" +
+                "\ntied on that\n\n" +
+                " old rocket.", 20, 170 );
 
         //drawTexture(Assets.instance.sister.sisterRegion.getTexture(), 1.0f, 1.5f);
         game.batcher.draw(Assets.instance.sister.sisterRegion,
@@ -355,9 +367,10 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void presentGameOver() {
-        game.batcher.draw(Assets.gameOver, 160 - 160 / 2, 240 - 96 / 2, 160, 96);
+        Assets.font.draw(game.batcher, "GAME OVER", 160 - 160 / 2, 240 - 96 / 2);
         glyphLayout.setText(Assets.font, scoreString);
         Assets.font.draw(game.batcher, scoreString, 160 - glyphLayout.width / 2, 480 - 20);
+        game.actionResolver.showOrLoadInterstital();
     }
 
     @Override

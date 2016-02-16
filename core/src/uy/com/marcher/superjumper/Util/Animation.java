@@ -16,7 +16,9 @@
 
 package uy.com.marcher.superjumper.Util;
 
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
 
 public class Animation {
     public static final int ANIMATION_LOOPING = 0;
@@ -28,6 +30,16 @@ public class Animation {
     public Animation(float frameDuration, TextureRegion... keyFrames) {
         this.frameDuration = frameDuration;
         this.keyFrames = keyFrames;
+    }
+
+    public Animation(float frameDuration, Array<TextureAtlas.AtlasRegion> regions){
+        this.frameDuration = frameDuration;
+        keyFrames = new TextureRegion[regions.size];
+        int i=0;
+        for(TextureRegion region : regions){
+            keyFrames[i] = region;
+            i++;
+        }
     }
 
     public TextureRegion getKeyFrame(float stateTime, int mode) {

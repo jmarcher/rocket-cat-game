@@ -29,7 +29,7 @@ import uy.com.marcher.superjumper.Screens.SplashScreen;
 import uy.com.marcher.superjumper.Util.ActionResolver;
 import uy.com.marcher.superjumper.Util.Settings;
 
-public class SuperJumper extends Game implements GestureDetector.GestureListener {
+public class SuperJumper extends Game{
     private static long SPLASH_MINIMUM_MILLIS = 950L;
     public ActionResolver actionResolver;
     // used by all screens
@@ -41,13 +41,10 @@ public class SuperJumper extends Game implements GestureDetector.GestureListener
 
     @Override
     public void create() {
-        /*
-        setScreen(new MainMenuScreen(this));*/
+
         setScreen(new SplashScreen());
         final long splash_start_time = System.currentTimeMillis();
         final SuperJumper instance = this;
-        GestureDetector gd = new GestureDetector(this);
-        Gdx.input.setInputProcessor(gd);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -58,7 +55,8 @@ public class SuperJumper extends Game implements GestureDetector.GestureListener
                         batcher = new SpriteBatch();
                         Settings.load();
                         Assets.instance.init(new AssetManager());
-                        Assets.load();
+                        actionResolver.showOrLoadInterstital();
+
 
                         // Se muestra el menu principal tras la SpashScreen
                         final long splash_elapsed_time = System.currentTimeMillis() - splash_start_time;
@@ -91,44 +89,5 @@ public class SuperJumper extends Game implements GestureDetector.GestureListener
         super.render();
     }
 
-    @Override
-    public boolean touchDown(float x, float y, int pointer, int button) {
-        return false;
-    }
 
-    @Override
-    public boolean tap(float x, float y, int count, int button) {
-        actionResolver.showOrLoadInterstital();
-        return true;
-    }
-
-    @Override
-    public boolean longPress(float x, float y) {
-        return false;
-    }
-
-    @Override
-    public boolean fling(float velocityX, float velocityY, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY) {
-        return false;
-    }
-
-    @Override
-    public boolean panStop(float x, float y, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean zoom(float initialDistance, float distance) {
-        return false;
-    }
-
-    @Override
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
-        return false;
-    }
 }

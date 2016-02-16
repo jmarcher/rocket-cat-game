@@ -58,7 +58,7 @@ public class HighscoresScreen extends ScreenAdapter {
 
             if (backBounds.contains(touchPoint.x, touchPoint.y)) {
                 Assets.playSound(Assets.clickSound);
-                game.setScreen(new MainMenuScreen(game));
+                game.setScreen(new GameScreen(game));
                 return;
             }
         }
@@ -77,7 +77,7 @@ public class HighscoresScreen extends ScreenAdapter {
 
         game.batcher.enableBlending();
         game.batcher.begin();
-        game.batcher.draw(Assets.highScoresRegion, 10, 360 - 16, 300, 33);
+        //game.batcher.draw(Assets.highScoresRegion, 10, 360 - 16, 300, 33);
 
         float y = 230;
         for (int i = 4; i >= 0; i--) {
@@ -85,7 +85,7 @@ public class HighscoresScreen extends ScreenAdapter {
             y += Assets.font.getLineHeight();
         }
 
-        game.batcher.draw(Assets.arrow, 0, 0, 64, 64);
+        //game.batcher.draw(Assets.arrow, 0, 0, 64, 64);
         game.batcher.end();
     }
 

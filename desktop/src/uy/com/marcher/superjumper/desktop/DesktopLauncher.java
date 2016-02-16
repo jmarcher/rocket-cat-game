@@ -32,6 +32,6 @@ public class DesktopLauncher implements ActionResolver {
 
     @Override
     public void showOrLoadInterstital() {
-        System.out.println("showOrLoadIntersitial()");
+
     }
 }
