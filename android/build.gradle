@@ -17,7 +17,7 @@ android {
     }
     defaultConfig {
         applicationId "uy.com.marcher.superjumper"
-        minSdkVersion 9
+        minSdkVersion 15
         targetSdkVersion 23
     }
 }

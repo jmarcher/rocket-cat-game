@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">Super Jumper</string>
+    <string name="facebook_app_id">1667001536898221</string>
 
 </resources>

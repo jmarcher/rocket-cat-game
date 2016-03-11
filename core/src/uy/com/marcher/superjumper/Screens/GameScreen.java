@@ -18,6 +18,7 @@ package uy.com.marcher.superjumper.Screens;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -28,6 +29,13 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.utils.Array;
+import de.tomgrill.gdxfacebook.core.GDXFacebookCallback;
+import de.tomgrill.gdxfacebook.core.GDXFacebookError;
+import de.tomgrill.gdxfacebook.core.SignInMode;
+import de.tomgrill.gdxfacebook.core.SignInResult;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Game.Objects.Jumper;
 import uy.com.marcher.superjumper.Game.World;
@@ -37,6 +45,7 @@ import uy.com.marcher.superjumper.Util.AdsController;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 import uy.com.marcher.superjumper.SuperJumper;
+import uy.com.marcher.superjumper.Util.facebook.FacebookRequest;
 
 public class GameScreen extends ScreenAdapter {
     static final int GAME_READY = 0;
@@ -106,6 +115,8 @@ public class GameScreen extends ScreenAdapter {
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
 
+
+
         //if(game.actionResolver.isWifiConnected()) {game.actionResolver.showBannerAd();}
     }
 
@@ -115,19 +126,17 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.justTouched()) {
             //guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
 
-            if (volumeControlBounds.contains(touchPoint.x, touchPoint.y)) {
+            if (volumeIconClicked()) {
                 Assets.playSound(Assets.clickSound);
                 Assets.stopAllSound();
-                Settings.soundEnabled = !Settings.soundEnabled;
-                if (Settings.soundEnabled)
-                    Assets.music.play();
-                else
-                    Assets.music.pause();
+                changeSoundSettingStatus();
+                pauseOrPlayMusic();
             }
         }
         switch (state) {
             case GAME_READY:
                 updateReady();
+
                 break;
             case GAME_RUNNING:
                 updateRunning(deltaTime);
@@ -142,6 +151,53 @@ public class GameScreen extends ScreenAdapter {
                 updateGameOver();
                 break;
         }
+    }
+
+    private void loginIntoFacebook() {
+        if(!game.facebook.isSignedIn()){
+            Array<String> permissions = new Array<String>();
+            permissions.add("email");
+            permissions.add("public_profile");
+            permissions.add("user_friends");
+
+            game.facebook.signIn(SignInMode.READ, permissions, new GDXFacebookCallback<SignInResult>() {
+                @Override
+                public void onSuccess(SignInResult result) {
+                    FacebookRequest fr = new FacebookRequest(game);
+                    fr.doRequest();
+                }
+
+                @Override
+                public void onError(GDXFacebookError error) {
+                    // Error handling
+                }
+
+                @Override
+                public void onCancel() {
+                    // When the user cancels the login process
+                }
+
+                @Override
+                public void onFail(Throwable t) {
+                    // When the login fails
+                }
+            });
+        }
+    }
+
+    private void changeSoundSettingStatus() {
+        Settings.soundEnabled = !Settings.soundEnabled;
+    }
+
+    private void pauseOrPlayMusic() {
+        if (Settings.soundEnabled)
+            Assets.music.play();
+        else
+            Assets.music.pause();
+    }
+
+    private boolean volumeIconClicked() {
+        return volumeControlBounds.contains(touchPoint.x, touchPoint.y);
     }
 
     private void updateReady() {
@@ -244,43 +300,12 @@ public class GameScreen extends ScreenAdapter {
             game.setScreen(new GameScreen(game));
         }
     }
-
-    private void applyBlur(float blur) {
-        // Horizontal blur from FBO A to FBO B
-        Assets.instance.fboB.begin();
-        game.batcher.setShader(Assets.instance.blurShader);
-        Assets.instance.blurShader.setUniformf("dir", 1.0f, 0.0f);
-        Assets.instance.blurShader.setUniformf("radius", blur);
-        Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        drawTexture(Assets.instance.fboA.getColorBufferTexture(),  0.0f, 0.0f);
-        game.batcher.flush();
-        Assets.instance.fboB.end();
-
-        // Vertical blur from FBO B to the screen
-        Assets.instance.blurShader.setUniformf("dir", 0.0f, 1.0f);
-        Assets.instance.blurShader.setUniformf("radius", blur);
-        drawTexture(Assets.instance.fboB.getColorBufferTexture(), 0.0f, 0.0f);
-        game.batcher.flush();
-    }
-
+    
     ShapeRenderer sr;
     public void draw() {
         GL20 gl = Gdx.gl;
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-
-
-        //Assets.instance.fboA.begin();
-        //game.batcher.setShader(null);
-
         renderer.render();
-
-        //game.batcher.flush();
-        //Assets.instance.fboA.end();
-        //applyBlur(3.0f);
-        //game.batcher.setShader(null);
-
         guiCam.update();
         game.batcher.setProjectionMatrix(guiCam.combined);
         game.batcher.enableBlending();
@@ -306,38 +331,13 @@ public class GameScreen extends ScreenAdapter {
                 break;
         }
         game.batcher.end();
-/*
-        sr.setProjectionMatrix(guiCam.combined);
-        sr.begin(ShapeRenderer.ShapeType.Line);
-        sr.setColor(Color.RED);
-        sr.rect(volumeControlBounds.x, volumeControlBounds.y,
-               volumeControlBounds.getWidth(), volumeControlBounds.height);
-        sr.end();*/
     }
-
-    private void drawTexture(Texture texture, float x, float y) {
-        int width = texture.getWidth();
-        int height = texture.getHeight();
-
-        game.batcher.draw(texture,
-                x, y,
-                0.0f, 0.0f,
-                width, height,
-                Constants.WORLD_TO_SCREEN, Constants.WORLD_TO_SCREEN,
-                0.0f,
-                0, 0,
-                width, height,
-                false, false);
-    }
-
     private void presentReady() {
         Assets.font.draw(game.batcher, "Can you help my brother? \n\n" +
                 "He dreams on \n" +
                 "\ntraveling space \n" +
                 "\ntied on that\n\n" +
                 " old rocket.", 20, 170 );
-
-        //drawTexture(Assets.instance.sister.sisterRegion.getTexture(), 1.0f, 1.5f);
         game.batcher.draw(Assets.instance.sister.sisterRegion,
                 Constants.VIRTUAL_WIDTH/2 - Assets.instance.sister.sisterRegion.getRegionWidth()/2,
                 0,
@@ -382,5 +382,6 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void pause() {
         if (state == GAME_RUNNING) state = GAME_PAUSED;
+
     }
 }

@@ -23,6 +23,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import de.tomgrill.gdxfacebook.core.GDXFacebook;
+import de.tomgrill.gdxfacebook.core.GDXFacebookConfig;
+import de.tomgrill.gdxfacebook.core.GDXFacebookSystem;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Screens.GameScreen;
 import uy.com.marcher.superjumper.Screens.SplashScreen;
@@ -34,6 +37,8 @@ public class SuperJumper extends Game{
     public ActionResolver actionResolver;
     // used by all screens
     public SpriteBatch batcher;
+
+    public GDXFacebook facebook;
 
     public SuperJumper(ActionResolver actionResolver) {
         this.actionResolver = actionResolver;
@@ -50,11 +55,13 @@ public class SuperJumper extends Game{
             public void run() {
 
                 Gdx.app.postRunnable(new Runnable() {
+
                     @Override
                     public void run() {
                         batcher = new SpriteBatch();
                         Settings.load();
                         Assets.instance.init(new AssetManager());
+                        facebook = loadFacebookApp();
                         actionResolver.showOrLoadInterstital();
 
 
@@ -71,6 +78,16 @@ public class SuperJumper extends Game{
                         } else {
                             SuperJumper.this.setScreen(new GameScreen(instance));
                         }
+                    }
+
+                    private GDXFacebook loadFacebookApp() {
+                        GDXFacebookConfig config = new GDXFacebookConfig();
+                        config.APP_ID = "1667001536898221"; // required
+                        config.PREF_FILENAME = ".facebookSessionData"; // optional
+                        config.GRAPH_API_VERSION = "v2.5"; // optional, default is v2.5
+
+                        GDXFacebook facebook = GDXFacebookSystem.install(config);
+                        return facebook;
                     }
                 });
             }

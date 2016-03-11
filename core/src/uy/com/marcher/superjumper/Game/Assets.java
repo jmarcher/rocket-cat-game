@@ -32,6 +32,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.ui.List;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Disposable;
 import uy.com.marcher.superjumper.Util.Animation;
 import uy.com.marcher.superjumper.Util.Constants;
@@ -61,6 +62,8 @@ public class Assets implements Disposable, AssetErrorListener{
     public static Sound engineSound;
     public static Sound tunaCanSound;
     public static ArrayList<Long> soundIds = new ArrayList<Long>();
+
+    public static Skin windowSkin;
 
 
     public AssetJumper jumper;
@@ -132,6 +135,10 @@ public class Assets implements Disposable, AssetErrorListener{
         loadFont();
         background = loadTexture("data/bg_parallax_stars_640x1600.png");
         backgroundRegion = new TextureRegion(background, 0, 0, 640, 972);
+        windowSkin = new Skin(
+                Gdx.files.internal("data/skins/uiskin.json"),
+                new TextureAtlas("data/skins/uiskin.atlas")
+        );
         loadSound();
         loadShaders();
     }
