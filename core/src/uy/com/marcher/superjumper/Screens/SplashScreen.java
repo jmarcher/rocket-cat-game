@@ -16,16 +16,18 @@ public class SplashScreen implements Screen {
     public SplashScreen() {
         super();
         batch = new SpriteBatch();
-        ttrSplash = new Texture(Gdx.files.internal("data/splash.png"));
+        ttrSplash = new Texture(Gdx.files.internal("data/nerdsLogo.png"));
         ttrSplash.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(1f, .98f, .973f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth()/4, Gdx.graphics.getHeight()/4);
+        batch.draw(ttrSplash,
+                Gdx.graphics.getWidth()/2 - ttrSplash.getWidth()/2,
+                Gdx.graphics.getHeight()/2 - ttrSplash.getHeight()/2,0,0,310,95);
         batch.end();
     }
 

@@ -56,8 +56,8 @@ public class WorldRenderer {
         //batch.disableBlending();
         batch.begin();
         //batch.setColor(Color.SKY);
-        batch.draw(Assets.backgroundRegion, cam.position.x - FRUSTUM_WIDTH / 2, cam.position.y - FRUSTUM_HEIGHT / 2, FRUSTUM_WIDTH,
-                FRUSTUM_HEIGHT);
+        batch.draw(Assets.backgroundRegion, cam.position.x - FRUSTUM_WIDTH / 2, cam.position.y - FRUSTUM_HEIGHT / 2,
+                FRUSTUM_WIDTH, FRUSTUM_HEIGHT);
 
         batch.end();
     }
@@ -233,7 +233,8 @@ public class WorldRenderer {
                         Animation.ANIMATION_NONLOOPING);
             }
 
-            batch.draw(keyFrame, platform.position.x - 1, platform.position.y - 0.25f, 2 * SCALE_RATE, 0.5f * SCALE_RATE);
+            batch.draw(keyFrame, platform.position.x - 1, platform.position.y - 0.25f, 2 * SCALE_RATE,
+                    0.5f * SCALE_RATE);
         }
     }
 
@@ -259,10 +260,12 @@ public class WorldRenderer {
             if(!onlyVisibleRangeRender(spring))
                 continue;
             if (!spring.wasUsed) {
-                batch.draw(Assets.instance.helpers.spring, spring.position.x - 0.1f, spring.position.y-0.1f, 0.8f, 0.8f);
+                batch.draw(Assets.instance.helpers.spring, spring.position.x - 0.1f, spring.position.y-0.1f, 0.8f,
+                        0.8f);
             } else {
                 Gdx.app.debug("Spring", "Animation?");
-                TextureRegion keyFrame = Assets.instance.helpers.springAnimation.getKeyFrame(spring.stateTime, Animation.ANIMATION_NONLOOPING);
+                TextureRegion keyFrame = Assets.instance.helpers.springAnimation.getKeyFrame(spring.stateTime,
+                        Animation.ANIMATION_NONLOOPING);
                 batch.draw(keyFrame, spring.position.x, spring.position.y,
                         (keyFrame.getTexture().getWidth()*0.8f)/keyFrame.getTexture().getWidth(),
                         (keyFrame.getTexture().getHeight()*0.8f)/keyFrame.getTexture().getHeight());

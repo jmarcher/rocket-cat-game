@@ -18,19 +18,15 @@ package uy.com.marcher.superjumper.Screens;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.utils.Array;
 import de.tomgrill.gdxfacebook.core.GDXFacebookCallback;
 import de.tomgrill.gdxfacebook.core.GDXFacebookError;
@@ -39,12 +35,12 @@ import de.tomgrill.gdxfacebook.core.SignInResult;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Game.Objects.Jumper;
 import uy.com.marcher.superjumper.Game.World;
-import uy.com.marcher.superjumper.Game.WorldRenderer;
 import uy.com.marcher.superjumper.Game.World.WorldListener;
+import uy.com.marcher.superjumper.Game.WorldRenderer;
+import uy.com.marcher.superjumper.SuperJumper;
 import uy.com.marcher.superjumper.Util.AdsController;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
-import uy.com.marcher.superjumper.SuperJumper;
 import uy.com.marcher.superjumper.Util.facebook.FacebookRequest;
 
 public class GameScreen extends ScreenAdapter {
@@ -54,27 +50,28 @@ public class GameScreen extends ScreenAdapter {
     static final int GAME_LEVEL_END = 3;
     static final int GAME_OVER = 4;
 
-
     private AdsController adsController;
 
-    SuperJumper game;
+    private SuperJumper game;
 
-    int state;
-    OrthographicCamera guiCam;
-    Vector3 touchPoint;
-    World world;
-    WorldListener worldListener;
-    WorldRenderer renderer;
-    Rectangle pauseBounds;
-    Rectangle resumeBounds;
-    Rectangle volumeControlBounds;
-    int lastScore;
-    String scoreString;
-    String altitudeString;
+    private int state;
+    private OrthographicCamera guiCam;
+    private Vector3 touchPoint;
+    private World world;
+    private WorldListener worldListener;
+    private WorldRenderer renderer;
+    private Rectangle pauseBounds;
+    private Rectangle resumeBounds;
+    private Rectangle volumeControlBounds;
+    private int lastScore;
+    private String scoreString;
+    private String altitudeString;
 
-    GlyphLayout glyphLayout = new GlyphLayout();
+    private GlyphLayout glyphLayout = new GlyphLayout();
 
-    long engineSound = -1;
+    private GameOverScreen gameOverScreen;
+
+    private long engineSound = -1;
 
     public GameScreen(SuperJumper game) {
         this.game = game;
@@ -111,6 +108,7 @@ public class GameScreen extends ScreenAdapter {
         pauseBounds = new Rectangle(320 - 32, 480 - 32, 32, 32);
         volumeControlBounds = new Rectangle(320 - 70, 480 - 32,32,32);
         resumeBounds = new Rectangle(160 - 48/2, 240-48/2, 48, 48);
+        gameOverScreen = new GameOverScreen(guiCam);
         lastScore = 0;
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
@@ -136,7 +134,6 @@ public class GameScreen extends ScreenAdapter {
         switch (state) {
             case GAME_READY:
                 updateReady();
-
                 break;
             case GAME_RUNNING:
                 updateRunning(deltaTime);
@@ -264,6 +261,9 @@ public class GameScreen extends ScreenAdapter {
                 scoreString = "NEW HIGHSCORE: " + lastScore;
             else
                 scoreString = "SCORE: " + lastScore;
+            //TODO: Try to save it through facebook (if logged in)
+            gameOverScreen.show();
+            //game.setScreen(new GameOverScreen(game));
             Settings.addScore(lastScore);
             Settings.save();
         }
@@ -302,7 +302,7 @@ public class GameScreen extends ScreenAdapter {
     }
     
     ShapeRenderer sr;
-    public void draw() {
+    public void draw(float delta) {
         GL20 gl = Gdx.gl;
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         renderer.render();
@@ -327,7 +327,7 @@ public class GameScreen extends ScreenAdapter {
                 presentLevelEnd();
                 break;
             case GAME_OVER:
-                presentGameOver();
+                presentGameOver(delta);
                 break;
         }
         game.batcher.end();
@@ -366,22 +366,38 @@ public class GameScreen extends ScreenAdapter {
         Assets.font.draw(game.batcher, glyphLayout, 160 - glyphLayout.width / 2, 40);
     }
 
-    private void presentGameOver() {
+    private void presentGameOver(float delta) {
         Assets.font.draw(game.batcher, "GAME OVER", 160 - 160 / 2, 240 - 96 / 2);
         glyphLayout.setText(Assets.font, scoreString);
         Assets.font.draw(game.batcher, scoreString, 160 - glyphLayout.width / 2, 480 - 20);
-        game.actionResolver.showOrLoadInterstital();
+        //TODO: Add Ads :::::> game.actionResolver.showOrLoadInterstital();
+
+        /*game.batcher.setProjectionMatrix(gameOverScreen.stage.getCamera().combined);*/
+        gameOverScreen.render(delta);
+
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
+        //gameOverScreen.resize(width, height);
     }
 
     @Override
     public void render(float delta) {
         update(delta);
-        draw();
+        draw(delta);
     }
 
     @Override
     public void pause() {
         if (state == GAME_RUNNING) state = GAME_PAUSED;
 
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        gameOverScreen.dispose();
     }
 }

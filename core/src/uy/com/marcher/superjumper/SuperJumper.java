@@ -33,7 +33,7 @@ import uy.com.marcher.superjumper.Util.ActionResolver;
 import uy.com.marcher.superjumper.Util.Settings;
 
 public class SuperJumper extends Game{
-    private static long SPLASH_MINIMUM_MILLIS = 950L;
+    private static long SPLASH_MINIMUM_MILLIS = 9500L;
     public ActionResolver actionResolver;
     // used by all screens
     public SpriteBatch batcher;

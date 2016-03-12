@@ -229,12 +229,14 @@ public class Assets implements Disposable, AssetErrorListener{
         public final TextureAtlas.AtlasRegion resumeButton;
         public final TextureAtlas.AtlasRegion soundOn;
         public final TextureAtlas.AtlasRegion soundOff;
+        public final TextureAtlas.AtlasRegion facebookLogin;
 
         public AssetsGUI(TextureAtlas atlas){
             this.pauseButton = atlas.findRegion("pause");
             this.resumeButton = atlas.findRegion("play");
             this.soundOff = atlas.findRegion("soundOff");
             this.soundOn = atlas.findRegion("soundOn");
+            this.facebookLogin = atlas.findRegion("facebook");
         }
     }
 

@@ -11,7 +11,7 @@ import uy.com.marcher.superjumper.Util.Constants;
 
 public class DesktopLauncher implements ActionResolver {
 
-    private static  boolean rebuildAtlas =false;
+    private static  boolean rebuildAtlas = false;
     private static boolean drawDebugOutline = false;
 
     public static void main(String[] arg) {

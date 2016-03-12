@@ -67,6 +67,13 @@ egg
   orig: 62, 71
   offset: 0, 0
   index: -1
+facebook
+  rotate: false
+  xy: 841, 917
+  size: 90, 31
+  orig: 90, 31
+  offset: 0, 0
+  index: -1
 jumper
   rotate: false
   xy: 414, 391
@@ -90,7 +97,7 @@ jumper_dead
   index: -1
 particle_fireball
   rotate: false
-  xy: 626, 13
+  xy: 682, 233
   size: 48, 48
   orig: 48, 48
   offset: 0, 0
@@ -181,7 +188,7 @@ splash
   index: -1
 spring_contracted
   rotate: false
-  xy: 841, 918
+  xy: 626, 31
   size: 73, 30
   orig: 73, 30
   offset: 0, 0
@@ -279,42 +286,42 @@ sprite67
   index: 67
 sprite68
   rotate: false
-  xy: 758, 2
+  xy: 675, 2
   size: 25, 24
   orig: 25, 24
   offset: 0, 0
   index: 68
 sprite69
   rotate: false
-  xy: 704, 2
+  xy: 929, 354
   size: 22, 25
   orig: 22, 25
   offset: 0, 0
   index: 69
 sprite70
   rotate: false
-  xy: 613, 549
+  xy: 492, 3
   size: 27, 22
   orig: 27, 22
   offset: 0, 0
   index: 70
 sprite71
   rotate: false
-  xy: 728, 2
+  xy: 613, 547
   size: 28, 24
   orig: 28, 24
   offset: 0, 0
   index: 71
 sprite72
   rotate: false
-  xy: 916, 926
+  xy: 933, 926
   size: 26, 22
   orig: 26, 22
   offset: 0, 0
   index: 72
 sprite73
   rotate: false
-  xy: 676, 2
+  xy: 701, 36
   size: 26, 25
   orig: 26, 25
   offset: 0, 0
@@ -342,7 +349,7 @@ sprite76
   index: 76
 sprite77
   rotate: false
-  xy: 549, 471
+  xy: 626, 2
   size: 47, 27
   orig: 47, 27
   offset: 0, 0
@@ -377,7 +384,7 @@ star
   index: 2
 tunaCan
   rotate: false
-  xy: 676, 29
+  xy: 549, 466
   size: 42, 32
   orig: 42, 32
   offset: 0, 0
