@@ -25,18 +25,22 @@ public class GameOverScreen extends ScreenAdapter {
     private OrthographicCamera camera;
 
 
-    public GameOverScreen(OrthographicCamera game) {
-        this.camera = game;
+    public GameOverScreen() {
+        this.camera = new OrthographicCamera(Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT);
+        this.camera.position.set(Constants.VIRTUAL_WIDTH/2, Constants.VIRTUAL_HEIGHT/2,0);
     }
 
 
     private void rebuildStage(){
         Table window = buildWindowLayer();
         stage.clear();
-        Stack stack = new Stack();
+        /*Stack stack = new Stack();
         stack.setSize(stage.getWidth(),stage.getHeight());
-        stack.addActor(window);
-        stage.addActor(stack);
+        /*stack.setPosition(Constants.VIRTUAL_WIDTH/2 - stack.getWidth()/2,
+                Constants.VIRTUAL_HEIGHT/2 - stack.getHeight()/2);
+
+        stack.addActor(window);*/
+        stage.addActor(window);
 
     }
 
@@ -48,11 +52,11 @@ public class GameOverScreen extends ScreenAdapter {
         window.setVisible(true);
         window.setColor(1f,.9f,.973f,0.9f);
         window.pack();
+        window.setSize(200,200);
         window.setPosition(
-                Constants.VIRTUAL_WIDTH/2 - window.getWidth()/2,
-                Constants.VIRTUAL_HEIGHT/2 - window.getHeight()/2
+                Constants.VIRTUAL_WIDTH/2 + window.getWidth()/2,
+                Constants.VIRTUAL_HEIGHT/2 + window.getHeight()/2
         );
-        window.sizeBy(200,200);
         return window;
     }
 

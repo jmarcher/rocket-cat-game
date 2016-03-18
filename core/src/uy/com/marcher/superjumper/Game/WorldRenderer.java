@@ -26,10 +26,10 @@ import com.badlogic.gdx.math.MathUtils;
 import uy.com.marcher.superjumper.Game.Objects.*;
 import uy.com.marcher.superjumper.Game.Objects.Decoration.Cloud;
 import uy.com.marcher.superjumper.Util.Animation;
+import uy.com.marcher.superjumper.Util.Constants;
+import uy.com.marcher.superjumper.Util.TextureHelper;
 
 public class WorldRenderer {
-    static final float FRUSTUM_WIDTH = 10;
-    static final float FRUSTUM_HEIGHT = 15;
     private static final float SCALE_RATE = 1.3f;
     World world;
     OrthographicCamera cam;
@@ -38,8 +38,8 @@ public class WorldRenderer {
 
     public WorldRenderer(SpriteBatch batch, World world) {
         this.world = world;
-        this.cam = new OrthographicCamera(FRUSTUM_WIDTH, FRUSTUM_HEIGHT);
-        this.cam.position.set(FRUSTUM_WIDTH / 2, FRUSTUM_HEIGHT / 2, 0);
+        this.cam = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
+        this.cam.position.set(Constants.FRUSTUM_WIDTH / 2, Constants.FRUSTUM_HEIGHT / 2, 0);
         this.batch = batch;
         this.sr = new ShapeRenderer();
     }
@@ -56,8 +56,8 @@ public class WorldRenderer {
         //batch.disableBlending();
         batch.begin();
         //batch.setColor(Color.SKY);
-        batch.draw(Assets.backgroundRegion, cam.position.x - FRUSTUM_WIDTH / 2, cam.position.y - FRUSTUM_HEIGHT / 2,
-                FRUSTUM_WIDTH, FRUSTUM_HEIGHT);
+        batch.draw(Assets.backgroundRegion, cam.position.x - Constants.FRUSTUM_WIDTH / 2, cam.position.y - Constants.FRUSTUM_HEIGHT / 2,
+                Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
 
         batch.end();
     }
@@ -177,7 +177,8 @@ public class WorldRenderer {
         }
         if (world.jumper.lookingAtSide < 0)
             batch.draw(keyFrame, world.jumper.position.x + 0.5f, world.jumper.position.y - 0.5f,
-                    (world.jumper.lookingAtSide * 1) * SCALE_RATE, (1.336f) * SCALE_RATE);
+                    (world.jumper.lookingAtSide * 1f) * 2f,
+                    TextureHelper.textureToFrustumHeight(keyFrame) * 2f);
         else
             batch.draw(keyFrame, world.jumper.position.x - 1.1f, world.jumper.position.y - 0.5f,
                     (world.jumper.lookingAtSide * 1) * SCALE_RATE, (1.336f) * SCALE_RATE);

@@ -41,6 +41,7 @@ import uy.com.marcher.superjumper.SuperJumper;
 import uy.com.marcher.superjumper.Util.AdsController;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
+import uy.com.marcher.superjumper.Util.TextureHelper;
 import uy.com.marcher.superjumper.Util.facebook.FacebookRequest;
 
 public class GameScreen extends ScreenAdapter {
@@ -78,8 +79,8 @@ public class GameScreen extends ScreenAdapter {
         this.sr = new ShapeRenderer();
 
         state = GAME_READY;
-        guiCam = new OrthographicCamera(320, 480);
-        guiCam.position.set(320 / 2, 480 / 2, 0);
+        guiCam = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
+        guiCam.position.set(Constants.FRUSTUM_WIDTH/2, Constants.FRUSTUM_HEIGHT/2, 0);
         touchPoint = new Vector3();
         worldListener = new WorldListener() {
 
@@ -108,7 +109,7 @@ public class GameScreen extends ScreenAdapter {
         pauseBounds = new Rectangle(320 - 32, 480 - 32, 32, 32);
         volumeControlBounds = new Rectangle(320 - 70, 480 - 32,32,32);
         resumeBounds = new Rectangle(160 - 48/2, 240-48/2, 48, 48);
-        gameOverScreen = new GameOverScreen(guiCam);
+        gameOverScreen = new GameOverScreen();
         lastScore = 0;
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
@@ -338,11 +339,13 @@ public class GameScreen extends ScreenAdapter {
                 "\ntraveling space \n" +
                 "\ntied on that\n\n" +
                 " old rocket.", 20, 170 );
-        game.batcher.draw(Assets.instance.sister.sisterRegion,
-                Constants.VIRTUAL_WIDTH/2 - Assets.instance.sister.sisterRegion.getRegionWidth()/2,
+        //System.out.println(Constants.textureToFrustumHeight(Assets.instance.sister.sisterRegion));
+        game.batcher.draw(
+                Assets.instance.sister.sisterRegion,
+                Constants.FRUSTUM_WIDTH/2 - 0.5f,
                 0,
-                Assets.instance.sister.sisterRegion.getRegionWidth(),
-                Assets.instance.sister.sisterRegion.getRegionHeight());
+                3,
+                TextureHelper.textureToFrustumHeight(Assets.instance.sister.sisterRegion)*3);
     }
 
     private void presentRunning() {

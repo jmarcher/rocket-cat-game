@@ -108,7 +108,7 @@ public class Assets implements Disposable, AssetErrorListener{
         enemies = new AssetsEnemies(atlas);
     }
 
-    private void loadShaders() {
+    /*private void loadShaders() {
         blurShader = new ShaderProgram(Gdx.files.internal("data/shaders/blur.vert"),
                 Gdx.files.internal("data/shaders/blur.frag"));
 
@@ -123,7 +123,7 @@ public class Assets implements Disposable, AssetErrorListener{
         blurShader.begin();
         blurShader.setUniformf("resolution", Constants.VIRTUAL_WIDTH);
         blurShader.end();
-    }
+    }*/
 
     public static Texture loadTexture(String file) {
         Texture texture = new Texture(Gdx.files.internal(file));
@@ -140,7 +140,7 @@ public class Assets implements Disposable, AssetErrorListener{
                 new TextureAtlas("data/skins/uiskin.atlas")
         );
         loadSound();
-        loadShaders();
+        //loadShaders();
     }
 
     private static void loadSound() {
