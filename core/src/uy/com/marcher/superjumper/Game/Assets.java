@@ -195,7 +195,7 @@ public class Assets implements Disposable, AssetErrorListener{
     @Override
     public void dispose() {
         assetManager.dispose();
-        blurShader.dispose();
+//        blurShader.dispose();
         fboA.dispose();
         fboB.dispose();
     }

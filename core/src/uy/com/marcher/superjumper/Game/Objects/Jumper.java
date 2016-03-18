@@ -17,14 +17,13 @@
 package uy.com.marcher.superjumper.Game.Objects;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Game.World;
-import uy.com.marcher.superjumper.Util.Constants;
+import uy.com.marcher.superjumper.Util.TextureHelper;
 
 public class Jumper extends DynamicGameObject {
 
@@ -70,31 +69,12 @@ public class Jumper extends DynamicGameObject {
     }
 
     public void update(float deltaTime) {
-        if(tunaCanLeftTime > 0){
-            tunaCanLeftTime -= deltaTime;
-            if(tunaCanLeftTime <= 0){
-                tunaCanLeftTime = 0;
-                this.velocity.y = getJumperVelocity();
-               // System.out.println("termina tuna can");
-            }
-        }
+        updateTunaCanEffect(deltaTime);
         velocity.add(World.gravity.x * deltaTime, World.gravity.y * deltaTime);
         position.add(velocity.x * deltaTime, velocity.y * deltaTime);
-        bounds.x = position.x - bounds.width / 2;
-        bounds.y = (position.y - bounds.height / 3);
+        updateBoundsPosition();
         //Gdx.gl.glClear(GL20.GL_ACTIVE_TEXTURE);
-        if(velocity.y > 0 && state == JUMPER_STATE_JUMP){
-            //fireParticle.getEmitters().first().setMaxParticleCount(this.maxParticleCount);
-            fireParticle.getEmitters().first().setContinuous(true);
-            fireParticle.setPosition(this.position.x - 0.3f, this.position.y - 0.3f);
-            fireParticle.allowCompletion();
-            fireParticle.start();
-        }else{
-            fireParticle.getEmitters().first().setContinuous(false);
-            fireParticle.setPosition(this.position.x -0.3f, this.position.y-0.3f);
-            fireParticle.getEmitters().first().duration = 0.1f;
-        }
-        fireParticle.update(deltaTime*2f);
+        updateFireParticleEffect(deltaTime);
         if (velocity.y > 0 && state != JUMPER_STATE_HIT) {
             if (state != JUMPER_STATE_JUMP) {
                 state = JUMPER_STATE_JUMP;
@@ -116,13 +96,74 @@ public class Jumper extends DynamicGameObject {
         stateTime += deltaTime;
     }
 
+    private void updateBoundsPosition() {
+        bounds.x = position.x - bounds.width / 2;
+        bounds.y = (position.y - bounds.height / 3);
+    }
+
+    private void updateFireParticleEffect(float deltaTime) {
+        if(velocity.y > 0 && state == JUMPER_STATE_JUMP){
+            //fireParticle.getEmitters().first().setMaxParticleCount(this.maxParticleCount);
+            fireParticle.getEmitters().first().setContinuous(true);
+            fireParticle.setPosition(this.position.x - 0.3f, this.position.y - 0.3f);
+            fireParticle.allowCompletion();
+            fireParticle.start();
+        }else{
+            fireParticle.getEmitters().first().setContinuous(false);
+            fireParticle.setPosition(this.position.x -0.3f, this.position.y-0.3f);
+            fireParticle.getEmitters().first().duration = 0.1f;
+        }
+        fireParticle.update(deltaTime*2f);
+    }
+
+    private void updateTunaCanEffect(float deltaTime) {
+        if(tunaCanLeftTime > 0){
+            tunaCanLeftTime -= deltaTime;
+            if(tunaCanLeftTime <= 0){
+                tunaCanLeftTime = 0;
+                this.velocity.y = getJumperVelocity();
+               // System.out.println("termina tuna can");
+            }
+        }
+    }
+
     /**
      * Pre: Preinitialized batch
      *
      * @param batch
      */
     public void render(SpriteBatch batch) {
-        fireParticle.draw(batch);
+        TextureRegion keyFrame;
+        renderParticles(batch);
+        renderTunaCanEffect(batch);
+
+        switch (this.state) {
+            case Jumper.JUMPER_STATE_FALL:
+                keyFrame = Assets.instance.jumper.jumperRegion;
+                break;
+            case Jumper.JUMPER_STATE_JUMP:
+                keyFrame = Assets.instance.jumper.jumperRegion; //Assets.bobJump.getKeyFrame(this.stateTime, Animation.ANIMATION_LOOPING);
+
+                break;
+            case Jumper.JUMPER_STATE_HIT:
+            default:
+                keyFrame = Assets.instance.jumper.jumperDeadRegion;
+        }
+
+        if(!MathUtils.isEqual(this.velocity.x,0,0.1f)) {
+            this.lookingAtSide = this.velocity.x < 0 ? 1 : -1;
+        }
+
+        float xOffset = -1.1f;
+        if (this.lookingAtSide < 0)
+            xOffset = 0.5f;
+        batch.draw(keyFrame, this.position.x + xOffset, this.position.y - 0.5f,
+                (this.lookingAtSide * 1f) * 1.3f, TextureHelper.textureToFrustumHeight(keyFrame) * 1.3f);
+
+        batch.setColor(1f,1f,1f,1f);
+    }
+
+    private void renderTunaCanEffect(SpriteBatch batch) {
         if(tunaCanLeftTime > 2f)
             batch.setColor(1.0f,1.0f,0.25f,1.0f);
         if(tunaCanLeftTime> 0f && tunaCanLeftTime <= 2f && MathUtils.round(tunaCanLeftTime * 10f)%2 == 0 ){
@@ -130,6 +171,10 @@ public class Jumper extends DynamicGameObject {
         }else if(tunaCanLeftTime> 0f && tunaCanLeftTime <= 2f){
             batch.setColor(1.0f,1.0f,0.25f,.5f);
         }
+    }
+
+    private void renderParticles(SpriteBatch batch) {
+        fireParticle.draw(batch);
     }
 
     public void hitEnemy() {

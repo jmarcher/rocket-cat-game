@@ -75,7 +75,7 @@ public class WorldRenderer {
         batch.end();
 
         drawEnemiesBounds(false);
-        drawBobBounds(false);
+        drawBobBounds(true);
         drawSpringBounds(false);
         drawPlatformBounds(false);
         drawStarBounds(false);
@@ -157,33 +157,7 @@ public class WorldRenderer {
     }
 
     private void renderBob() {
-        TextureRegion keyFrame;
         world.jumper.render(batch);
-        switch (world.jumper.state) {
-            case Jumper.JUMPER_STATE_FALL:
-                keyFrame = Assets.instance.jumper.jumperRegion;
-                break;
-            case Jumper.JUMPER_STATE_JUMP:
-                keyFrame = Assets.instance.jumper.jumperRegion; //Assets.bobJump.getKeyFrame(world.jumper.stateTime, Animation.ANIMATION_LOOPING);
-
-                break;
-            case Jumper.JUMPER_STATE_HIT:
-            default:
-                keyFrame = Assets.instance.jumper.jumperDeadRegion;
-        }
-
-        if(!MathUtils.isEqual(world.jumper.velocity.x,0,0.1f)) {
-            world.jumper.lookingAtSide = world.jumper.velocity.x < 0 ? 1 : -1;
-        }
-        if (world.jumper.lookingAtSide < 0)
-            batch.draw(keyFrame, world.jumper.position.x + 0.5f, world.jumper.position.y - 0.5f,
-                    (world.jumper.lookingAtSide * 1f) * 2f,
-                    TextureHelper.textureToFrustumHeight(keyFrame) * 2f);
-        else
-            batch.draw(keyFrame, world.jumper.position.x - 1.1f, world.jumper.position.y - 0.5f,
-                    (world.jumper.lookingAtSide * 1) * SCALE_RATE, (1.336f) * SCALE_RATE);
-
-        batch.setColor(1f,1f,1f,1f);
     }
 
     private boolean onlyVisibleRangeRender(GameObject object) {
