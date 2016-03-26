@@ -1,19 +1,3 @@
-/*******************************************************************************
- * Copyright 2011 See AUTHORS file.
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
-
 package uy.com.marcher.superjumper.Game.Objects;
 
 import com.badlogic.gdx.Gdx;
@@ -27,29 +11,25 @@ import uy.com.marcher.superjumper.Util.TextureHelper;
 
 public class Jumper extends DynamicGameObject {
 
-
     public static final int JUMPER_STATE_JUMP = 0;
     public static final int JUMPER_STATE_FALL = 1;
     public static final int JUMPER_STATE_HIT = 2;
     public static final float JUMPER_JUMP_VELOCITY = 14;
     public static final float JUMPER_MOVE_VELOCITY = 20;
-    public static final float JUMPER_WIDTH = 1f;
-    public static final float JUMPER_HEIGHT = 1.2f;
+    private static final float JUMPER_WIDTH = 1f;
+    private static final float JUMPER_HEIGHT = 1.7594f;
+    private static final float TUNACAN_TIME = 10f;
 
-    public static final float TUNACAN_TIME = 10f;
-
-    public ParticleEffect fireParticle = new ParticleEffect();
-
-    public int state;
-    public float stateTime;
-    public float lookingAtSide;
-
-    public float tunaCanLeftTime;
-    public World world;
+    private ParticleEffect fireParticle = new ParticleEffect();
+    private int state;
+    private float stateTime;
+    private float lookingAtSide;
+    private float tunaCanLeftTime;
+    private World world;
 
     public Jumper(float x, float y) {
         super(x, y, JUMPER_WIDTH, JUMPER_HEIGHT);
-        state = JUMPER_STATE_FALL;
+        setState(JUMPER_STATE_FALL);
         stateTime = 0;
         fireParticle.load(Gdx.files.internal("data/particles/fireNsmoke.pfx"), Gdx.files.internal("data/particles"));
         fireParticle.flipY();
@@ -75,17 +55,17 @@ public class Jumper extends DynamicGameObject {
         updateBoundsPosition();
         //Gdx.gl.glClear(GL20.GL_ACTIVE_TEXTURE);
         updateFireParticleEffect(deltaTime);
-        if (velocity.y > 0 && state != JUMPER_STATE_HIT) {
-            if (state != JUMPER_STATE_JUMP) {
-                state = JUMPER_STATE_JUMP;
+        if (velocity.y > 0 && getState() != JUMPER_STATE_HIT) {
+            if (getState() != JUMPER_STATE_JUMP) {
+                setState(JUMPER_STATE_JUMP);
                 //this.fireParticle.allowCompletion();
                 stateTime = 0;
             }
         }
 
-        if (velocity.y < 0 && state != JUMPER_STATE_HIT) {
-            if (state != JUMPER_STATE_FALL) {
-                state = JUMPER_STATE_FALL;
+        if (velocity.y < 0 && getState() != JUMPER_STATE_HIT) {
+            if (getState() != JUMPER_STATE_FALL) {
+                setState(JUMPER_STATE_FALL);
                 stateTime = 0;
             }
         }
@@ -97,12 +77,15 @@ public class Jumper extends DynamicGameObject {
     }
 
     private void updateBoundsPosition() {
-        bounds.x = position.x - bounds.width / 2;
+        float xOffset = -0.1f;
+        if (this.lookingAtSide >= 0)
+            xOffset = -0.4f;
+        bounds.x = xOffset + position.x - bounds.width / 2 ;
         bounds.y = (position.y - bounds.height / 3);
     }
 
     private void updateFireParticleEffect(float deltaTime) {
-        if(velocity.y > 0 && state == JUMPER_STATE_JUMP){
+        if(velocity.y > 0 && getState() == JUMPER_STATE_JUMP){
             //fireParticle.getEmitters().first().setMaxParticleCount(this.maxParticleCount);
             fireParticle.getEmitters().first().setContinuous(true);
             fireParticle.setPosition(this.position.x - 0.3f, this.position.y - 0.3f);
@@ -132,12 +115,13 @@ public class Jumper extends DynamicGameObject {
      *
      * @param batch
      */
+    @Override
     public void render(SpriteBatch batch) {
         TextureRegion keyFrame;
         renderParticles(batch);
         renderTunaCanEffect(batch);
 
-        switch (this.state) {
+        switch (this.getState()) {
             case Jumper.JUMPER_STATE_FALL:
                 keyFrame = Assets.instance.jumper.jumperRegion;
                 break;
@@ -179,7 +163,7 @@ public class Jumper extends DynamicGameObject {
 
     public void hitEnemy() {
         velocity.set(0, 0);
-        state = JUMPER_STATE_HIT;
+        setState(JUMPER_STATE_HIT);
         stateTime = 0;
     }
 
@@ -190,7 +174,7 @@ public class Jumper extends DynamicGameObject {
 
     public void makeJump(){
         velocity.y = getJumperVelocity();
-        state= JUMPER_STATE_JUMP;
+        setState(JUMPER_STATE_JUMP);
         stateTime = 0;
     }
 
@@ -202,7 +186,7 @@ public class Jumper extends DynamicGameObject {
 
     public void hitSpring() {
         velocity.y = JUMPER_JUMP_VELOCITY * 2.5f;
-        state = JUMPER_STATE_JUMP;
+        setState(JUMPER_STATE_JUMP);
         stateTime = 0;
     }
 
@@ -211,6 +195,14 @@ public class Jumper extends DynamicGameObject {
     }
 
     public boolean isDead() {
-        return state == JUMPER_STATE_HIT;
+        return getState() == JUMPER_STATE_HIT;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 }

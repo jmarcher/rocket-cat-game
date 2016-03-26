@@ -65,6 +65,7 @@ public class Cloud extends DynamicGameObject {
         batch.setColor(1,1,1,1);
     }
 
+    @Override
     public void render(SpriteBatch batch){
         drawDust(batch, 0.5f, 0.5f, 0.5f);
 

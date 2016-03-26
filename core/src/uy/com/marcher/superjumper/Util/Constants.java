@@ -22,4 +22,7 @@ public final class Constants {
     public static final float FRUSTUM_WIDTH = 9;
     public static final float FRUSTUM_HEIGHT = 16;
 
+    public static final String STRING = "1667001536898221";
+
+    public static final String SERVER_URL = "http://rocketcat.nerdscorner.com.uy";
 }

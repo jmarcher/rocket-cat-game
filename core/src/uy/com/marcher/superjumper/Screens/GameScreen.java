@@ -25,13 +25,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import de.tomgrill.gdxfacebook.core.GDXFacebookCallback;
-import de.tomgrill.gdxfacebook.core.GDXFacebookError;
-import de.tomgrill.gdxfacebook.core.SignInMode;
-import de.tomgrill.gdxfacebook.core.SignInResult;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Game.Objects.Jumper;
 import uy.com.marcher.superjumper.Game.World;
@@ -42,7 +38,7 @@ import uy.com.marcher.superjumper.Util.AdsController;
 import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 import uy.com.marcher.superjumper.Util.TextureHelper;
-import uy.com.marcher.superjumper.Util.facebook.FacebookRequest;
+import uy.com.marcher.superjumper.Util.facebook.FacebookHelper;
 
 public class GameScreen extends ScreenAdapter {
     static final int GAME_READY = 0;
@@ -54,6 +50,7 @@ public class GameScreen extends ScreenAdapter {
     private AdsController adsController;
 
     private SuperJumper game;
+    private FacebookHelper facebookHelper;
 
     private int state;
     private OrthographicCamera guiCam;
@@ -74,13 +71,14 @@ public class GameScreen extends ScreenAdapter {
 
     private long engineSound = -1;
 
+
     public GameScreen(SuperJumper game) {
         this.game = game;
         this.sr = new ShapeRenderer();
 
         state = GAME_READY;
-        guiCam = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
-        guiCam.position.set(Constants.FRUSTUM_WIDTH/2, Constants.FRUSTUM_HEIGHT/2, 0);
+        guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        guiCam.position.set(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2, 0);
         touchPoint = new Vector3();
         worldListener = new WorldListener() {
 
@@ -106,15 +104,16 @@ public class GameScreen extends ScreenAdapter {
         };
         world = new World(worldListener);
         renderer = new WorldRenderer(game.batcher, world);
-        pauseBounds = new Rectangle(320 - 32, 480 - 32, 32, 32);
-        volumeControlBounds = new Rectangle(320 - 70, 480 - 32,32,32);
-        resumeBounds = new Rectangle(160 - 48/2, 240-48/2, 48, 48);
-        gameOverScreen = new GameOverScreen();
+        this.facebookHelper = new FacebookHelper(game);
+        pauseBounds = new Rectangle(Gdx.graphics.getWidth()-48, Gdx.graphics.getHeight() - 48, 48, 48);
+        volumeControlBounds = new Rectangle(Gdx.graphics.getWidth() - 110, Gdx.graphics.getHeight() - 48,48,48);
+        resumeBounds = new Rectangle(Gdx.graphics.getWidth()/2 - 48/2, Gdx.graphics.getHeight()/2-48/2, 48, 48);
+        gameOverScreen = new GameOverScreen(game);
         lastScore = 0;
         scoreString = "SCORE: 0";
         altitudeString = "0 m";
 
-
+        this.facebookHelper.getFriends();//TODO:Mirar estooooo------~~****
 
         //if(game.actionResolver.isWifiConnected()) {game.actionResolver.showBannerAd();}
     }
@@ -150,39 +149,6 @@ public class GameScreen extends ScreenAdapter {
                 break;
         }
     }
-
-    private void loginIntoFacebook() {
-        if(!game.facebook.isSignedIn()){
-            Array<String> permissions = new Array<String>();
-            permissions.add("email");
-            permissions.add("public_profile");
-            permissions.add("user_friends");
-
-            game.facebook.signIn(SignInMode.READ, permissions, new GDXFacebookCallback<SignInResult>() {
-                @Override
-                public void onSuccess(SignInResult result) {
-                    FacebookRequest fr = new FacebookRequest(game);
-                    fr.doRequest();
-                }
-
-                @Override
-                public void onError(GDXFacebookError error) {
-                    // Error handling
-                }
-
-                @Override
-                public void onCancel() {
-                    // When the user cancels the login process
-                }
-
-                @Override
-                public void onFail(Throwable t) {
-                    // When the login fails
-                }
-            });
-        }
-    }
-
     private void changeSoundSettingStatus() {
         Settings.soundEnabled = !Settings.soundEnabled;
     }
@@ -211,17 +177,25 @@ public class GameScreen extends ScreenAdapter {
 
     private void updateRunning(float deltaTime) {
         if (Gdx.input.justTouched()) {
-            guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
-
-            if (pauseBounds.contains(touchPoint.x, touchPoint.y)) {
-                Assets.playSound(Assets.clickSound);
-                state = GAME_PAUSED;
-                return;
-            }
+            if (updateButtonEvents()) return;
         }
+        updateSounds();
+        updateInputMethods(deltaTime);
+        setAltitudeString();
+        updateGUI();
+    }
 
-        ApplicationType appType = Gdx.app.getType();
+    private boolean updateButtonEvents() {
+        guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
+        if (pauseBounds.contains(touchPoint.x, touchPoint.y)) {
+            Assets.playSound(Assets.clickSound);
+            state = GAME_PAUSED;
+            return true;
+        }
+        return false;
+    }
 
+    private void updateSounds() {
         if (Gdx.input.justTouched()) {
             if(!world.jumper.isDead())
                 world.jumper.makeJump();
@@ -236,22 +210,14 @@ public class GameScreen extends ScreenAdapter {
                 }
             }
         }
-        if(world.jumper.state == Jumper.JUMPER_STATE_FALL){
+        if(world.jumper.getState() == Jumper.JUMPER_STATE_FALL){
             if(engineSound != -1 && Settings.soundEnabled){
                 Assets.engineSound.pause();
             }
         }
+    }
 
-        // should work also with Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)
-        if (appType == ApplicationType.Android || appType == ApplicationType.iOS) {
-            world.update(deltaTime, Gdx.input.getAccelerometerX());
-        } else {
-            float accel = 0;
-            if (Gdx.input.isKeyPressed(Keys.DPAD_LEFT)) accel = 5f;
-            if (Gdx.input.isKeyPressed(Keys.DPAD_RIGHT)) accel = -5f;
-            world.update(deltaTime, accel);
-        }
-        setAltitudeString();
+    private void updateGUI() {
         if (world.score != lastScore) {
             lastScore = world.score;
             scoreString = "SCORE: " + lastScore;
@@ -270,16 +236,31 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void updateInputMethods(float deltaTime) {
+        ApplicationType appType = Gdx.app.getType();
+        // should work also with Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)
+        if (appType == ApplicationType.Android || appType == ApplicationType.iOS) {
+            world.update(deltaTime, Gdx.input.getAccelerometerX());
+        } else {
+            float accel = 0;
+            if (Gdx.input.isKeyPressed(Keys.DPAD_LEFT)) accel = 5f;
+            if (Gdx.input.isKeyPressed(Keys.DPAD_RIGHT)) accel = -5f;
+            world.update(deltaTime, accel);
+        }
+    }
+
     private void setAltitudeString() {
         altitudeString = Math.round(world.heightSoFar) + " m";
     }
 
     private void updatePaused() {
+        Assets.stopAllSound();
         if (Gdx.input.justTouched()) {
             guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
-            Assets.engineSound.stop();
             if (resumeBounds.contains(touchPoint.x, touchPoint.y)) {
                 Assets.playSound(Assets.clickSound);
+                if(Settings.soundEnabled)
+                    Assets.music.play();
                 state = GAME_RUNNING;
                 return;
             }
@@ -308,11 +289,15 @@ public class GameScreen extends ScreenAdapter {
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         renderer.render();
         guiCam.update();
-        game.batcher.setProjectionMatrix(guiCam.combined);
+        //game.batcher.setProjectionMatrix(guiCam.combined);
+        Matrix4 normalProjection = new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
+
+        game.batcher.setProjectionMatrix(normalProjection);
         game.batcher.enableBlending();
         game.batcher.begin();
         game.batcher.draw(Settings.soundEnabled ? Assets.instance.GUI.soundOn : Assets.instance.GUI.soundOff,
-                320 - 70, 480 - 32,32,32);
+                volumeControlBounds.getX(), volumeControlBounds.getY(),
+                volumeControlBounds.getWidth(),volumeControlBounds.getHeight());
 
         switch (state) {
             case GAME_READY:
@@ -332,7 +317,26 @@ public class GameScreen extends ScreenAdapter {
                 break;
         }
         game.batcher.end();
+
+        drawGUIBounds(false);
     }
+
+    private void drawGUIBounds(boolean render) {
+        if(!render)
+            return;
+        sr.setProjectionMatrix(game.batcher.getProjectionMatrix());
+        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.setColor(Color.RED);
+        renderRectancle(pauseBounds);
+        renderRectancle(volumeControlBounds);
+        sr.end();
+    }
+
+    private void renderRectancle(Rectangle rectangle) {
+        sr.rect(rectangle.x,rectangle.y,
+                rectangle.getWidth(), rectangle.getHeight());
+    }
+
     private void presentReady() {
         Assets.font.draw(game.batcher, "Can you help my brother? \n\n" +
                 "He dreams on \n" +
@@ -349,17 +353,19 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void presentRunning() {
-        game.batcher.draw(Assets.instance.GUI.pauseButton, 320 -32, 480 - 32, 32, 32);
-        Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
-        Assets.font.draw(game.batcher, altitudeString,16,480-42);
+        game.batcher.draw(Assets.instance.GUI.pauseButton, pauseBounds.getX(),
+                pauseBounds.getY(), pauseBounds.getWidth(), pauseBounds.getHeight());
+        Assets.font.draw(game.batcher, scoreString, 16, Gdx.graphics.getHeight() - 10);
+        Assets.font.draw(game.batcher, altitudeString, 16, Gdx.graphics.getHeight() - 50);
         game.batcher.setColor(Color.RED);
-        Assets.font.draw(game.batcher, Gdx.graphics.getFramesPerSecond()+"", 20,20);
+        Assets.font.draw(game.batcher, Gdx.graphics.getFramesPerSecond()+"", 16,16);
         game.batcher.setColor(1,1,1,1);
     }
 
     private void presentPaused() {
-        game.batcher.draw(Assets.instance.GUI.resumeButton, 160 - 48 / 2, 240 - 48 / 2, 48, 48);
-        Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
+        game.batcher.draw(Assets.instance.GUI.resumeButton, resumeBounds.getX(), resumeBounds.getY(),
+                resumeBounds.getWidth(), resumeBounds.getHeight());
+        Assets.font.draw(game.batcher, scoreString, 16, Gdx.graphics.getHeight() - 20);
     }
 
     private void presentLevelEnd() {

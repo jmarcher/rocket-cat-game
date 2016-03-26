@@ -74,9 +74,6 @@ public class Assets implements Disposable, AssetErrorListener{
     public AssetsEnemies enemies;
 
 
-
-    public static FreeTypeFontGenerator fontGenerator;
-    public static FreeTypeFontGenerator.FreeTypeFontParameter fontParameter;
     public ShaderProgram blurShader;
     public FrameBuffer fboA;
     public FrameBuffer fboB;
@@ -158,8 +155,8 @@ public class Assets implements Disposable, AssetErrorListener{
     }
 
     private static void loadFont() {
-        fontGenerator =new FreeTypeFontGenerator(Gdx.files.internal("data/fonts/cubic.ttf"));
-        fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        FreeTypeFontGenerator fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("data/fonts/cubic.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         fontParameter.size = 16;
         fontParameter.minFilter = Texture.TextureFilter.Linear;
         fontParameter.magFilter = Texture.TextureFilter.Linear;
@@ -195,9 +192,6 @@ public class Assets implements Disposable, AssetErrorListener{
     @Override
     public void dispose() {
         assetManager.dispose();
-//        blurShader.dispose();
-        fboA.dispose();
-        fboB.dispose();
     }
 
 

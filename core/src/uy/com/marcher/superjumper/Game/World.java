@@ -138,14 +138,14 @@ public class World {
         updateCoins(deltaTime);
         updateSprings(deltaTime);
         updateDusts(deltaTime);
-        if (jumper.state != Jumper.JUMPER_STATE_HIT) checkCollisions();
+        if (jumper.getState() != Jumper.JUMPER_STATE_HIT) checkCollisions();
         checkGameOver();
     }
 
 
     private void updateBob(float deltaTime, float accelX) {
-        if (jumper.state != Jumper.JUMPER_STATE_HIT && jumper.position.y <= 0.3f) jumper.hitPlatform();
-        if (jumper.state != Jumper.JUMPER_STATE_HIT) jumper.velocity.x = -accelX / 10 * Jumper.JUMPER_MOVE_VELOCITY;
+        if (jumper.getState() != Jumper.JUMPER_STATE_HIT && jumper.position.y <= 0.3f) jumper.hitPlatform();
+        if (jumper.getState() != Jumper.JUMPER_STATE_HIT) jumper.velocity.x = -accelX / 10 * Jumper.JUMPER_MOVE_VELOCITY;
         jumper.update(deltaTime);
         heightSoFar = Math.max(jumper.position.y, heightSoFar);
     }
@@ -173,9 +173,7 @@ public class World {
     }
 
     private boolean onlyVisibleRangeUpdate(GameObject object) {
-        if(object.position.y>= heightSoFar-10f && object.position.y <= heightSoFar+10f)
-            return true;
-        return false;
+        return object.position.y >= heightSoFar - 10f && object.position.y <= heightSoFar + 10f;
     }
 
     private void updateSquirrels(float deltaTime) {

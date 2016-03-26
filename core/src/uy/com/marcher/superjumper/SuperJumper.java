@@ -1,19 +1,3 @@
-/*******************************************************************************
- * Copyright 2011 See AUTHORS file.
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
-
 package uy.com.marcher.superjumper;
 
 import com.badlogic.gdx.Game;
@@ -30,10 +14,11 @@ import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.Screens.GameScreen;
 import uy.com.marcher.superjumper.Screens.SplashScreen;
 import uy.com.marcher.superjumper.Util.ActionResolver;
+import uy.com.marcher.superjumper.Util.Constants;
 import uy.com.marcher.superjumper.Util.Settings;
 
 public class SuperJumper extends Game{
-    private static long SPLASH_MINIMUM_MILLIS = 9500L;
+    private static long SPLASH_MINIMUM_MILLIS = 1L;
     public ActionResolver actionResolver;
     // used by all screens
     public SpriteBatch batcher;
@@ -82,7 +67,7 @@ public class SuperJumper extends Game{
 
                     private GDXFacebook loadFacebookApp() {
                         GDXFacebookConfig config = new GDXFacebookConfig();
-                        config.APP_ID = "1667001536898221"; // required
+                        config.APP_ID = Constants.STRING; // required
                         config.PREF_FILENAME = ".facebookSessionData"; // optional
                         config.GRAPH_API_VERSION = "v2.5"; // optional, default is v2.5
 

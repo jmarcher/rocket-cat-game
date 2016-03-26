@@ -2,15 +2,21 @@ package uy.com.marcher.superjumper.Screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import uy.com.marcher.superjumper.Game.Assets;
 import uy.com.marcher.superjumper.SuperJumper;
 import uy.com.marcher.superjumper.Util.Constants;
+import uy.com.marcher.superjumper.Util.facebook.FacebookHelper;
+
 
 /**
  * Created by gordo on 10/03/16.
@@ -20,14 +26,18 @@ public class GameOverScreen extends ScreenAdapter {
 
     public Stage stage;
 
-    private Image facebook;
+    private Image facebookButton;
     private Window window;
     private OrthographicCamera camera;
+    private SuperJumper game;
+    private FacebookHelper facebookHelper;
 
 
-    public GameOverScreen() {
-        this.camera = new OrthographicCamera(Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT);
-        this.camera.position.set(Constants.VIRTUAL_WIDTH/2, Constants.VIRTUAL_HEIGHT/2,0);
+    public GameOverScreen(SuperJumper game) {
+        this.game = game;
+        this.camera = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
+        this.camera.position.set(Constants.FRUSTUM_WIDTH/2, Constants.FRUSTUM_HEIGHT/2,0);
+        facebookHelper = new FacebookHelper(game);
     }
 
 
@@ -50,34 +60,34 @@ public class GameOverScreen extends ScreenAdapter {
         Table layer = buildFacebookIcon();
         window.add(layer).row();
         window.setVisible(true);
-        window.setColor(1f,.9f,.973f,0.9f);
+        window.setColor(Color.GRAY);
         window.pack();
-        window.setSize(200,200);
+        window.setSize(Gdx.graphics.getWidth()/1.2f,Gdx.graphics.getHeight()/3);
         window.setPosition(
-                Constants.VIRTUAL_WIDTH/2 + window.getWidth()/2,
-                Constants.VIRTUAL_HEIGHT/2 + window.getHeight()/2
+                Gdx.graphics.getWidth()/2 - window.getWidth()/2,
+                Gdx.graphics.getHeight()/2 - window.getHeight()/2
         );
         return window;
     }
 
     private Table buildFacebookIcon() {
         Table layer = new Table();
-        layer.pad(10,10,0,10);
+        layer.pad(1f,1f,0,1f);
         layer.add(new Label("Connect to facebook", Assets.windowSkin));
         //TODO: If not logged in show fb icon
         layer.row();
-        layer.columnDefaults(0).padRight(10);
-        layer.columnDefaults(1).padRight(10);
-        facebook = new Image(Assets.instance.GUI.facebookLogin);
-        facebook.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
-
-                //TODO:hacer login con facebook
-            }
-        });
-        layer.add(facebook).width(90).height(31);
+        layer.columnDefaults(0).padRight(1f);
+        layer.columnDefaults(1).padRight(1f);
+        if(!game.facebook.isSignedIn()) {
+            facebookButton = new Image(Assets.instance.GUI.facebookLogin);
+            facebookButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    facebookHelper.login();
+                }
+            });
+            layer.add(facebookButton).width(180).height(62);
+        }
         return layer;
     }
 

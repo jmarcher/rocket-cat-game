@@ -1,19 +1,3 @@
-/*******************************************************************************
- * Copyright 2011 See AUTHORS file.
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
-
 package uy.com.marcher.superjumper.Game;
 
 import com.badlogic.gdx.Gdx;
@@ -22,19 +6,17 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import uy.com.marcher.superjumper.Game.Objects.*;
 import uy.com.marcher.superjumper.Game.Objects.Decoration.Cloud;
 import uy.com.marcher.superjumper.Util.Animation;
 import uy.com.marcher.superjumper.Util.Constants;
-import uy.com.marcher.superjumper.Util.TextureHelper;
 
 public class WorldRenderer {
     private static final float SCALE_RATE = 1.3f;
-    World world;
-    OrthographicCamera cam;
-    SpriteBatch batch;
-    ShapeRenderer sr;
+    private World world;
+    private OrthographicCamera cam;
+    private SpriteBatch batch;
+    private ShapeRenderer sr;
 
     public WorldRenderer(SpriteBatch batch, World world) {
         this.world = world;
@@ -68,14 +50,14 @@ public class WorldRenderer {
         renderClouds();
         renderPlatforms();
         renderBob();
-        renderFrontClouds();
         renderItems();
         renderEnemies();
+        renderFrontClouds();
         //renderCastle();
         batch.end();
 
         drawEnemiesBounds(false);
-        drawBobBounds(true);
+        drawBobBounds(false);
         drawSpringBounds(false);
         drawPlatformBounds(false);
         drawStarBounds(false);
@@ -87,8 +69,7 @@ public class WorldRenderer {
             return;
         for(TunaCan tunaCan : world.tunaCans){
             initializeShapeRender();
-            sr.rect(tunaCan.bounds.x, tunaCan.bounds.y,
-                    tunaCan.bounds.getWidth(), tunaCan.bounds.getHeight());
+            drawObjectBound(tunaCan);
             sr.end();
         }
     }
@@ -103,8 +84,7 @@ public class WorldRenderer {
         if(!render)
             return;
         initializeShapeRender();
-        sr.rect(world.jumper.bounds.getX(), world.jumper.bounds.getY(),
-                world.jumper.bounds.getWidth(), world.jumper.bounds.getHeight());
+        drawObjectBound(world.jumper);
         sr.end();
     }
 
@@ -114,8 +94,7 @@ public class WorldRenderer {
         int len = world.platforms.size();
         for (int i = 0; i < len; i++) {
             initializeShapeRender();
-            sr.rect(world.platforms.get(i).bounds.x, world.platforms.get(i).bounds.y,
-                    world.platforms.get(i).bounds.getWidth(), world.platforms.get(i).bounds.getHeight());
+            drawObjectBound(world.platforms.get(i));
             sr.end();
         }
     }
@@ -126,8 +105,7 @@ public class WorldRenderer {
         int len = world.stars.size();
         for (int i = 0; i < len; i++) {
             initializeShapeRender();
-            sr.rect(world.stars.get(i).bounds.x, world.stars.get(i).bounds.y,
-                    world.stars.get(i).bounds.getWidth(), world.stars.get(i).bounds.getHeight());
+            drawObjectBound(world.stars.get(i));
             sr.end();
         }
     }
@@ -138,10 +116,14 @@ public class WorldRenderer {
         int len = world.enemies.size();
         for (int i = 0; i < len; i++) {
             initializeShapeRender();
-            sr.rect(world.enemies.get(i).bounds.x, world.enemies.get(i).bounds.y,
-                    world.enemies.get(i).bounds.getWidth(), world.enemies.get(i).bounds.getHeight());
+            drawObjectBound(world.enemies.get(i));
             sr.end();
         }
+    }
+
+    private void drawObjectBound(GameObject gameObject) {
+        sr.rect(gameObject.bounds.x,gameObject.bounds.y,
+                gameObject.bounds.getWidth(), gameObject.bounds.getHeight());
     }
 
     private void drawSpringBounds(boolean render) {
@@ -161,9 +143,7 @@ public class WorldRenderer {
     }
 
     private boolean onlyVisibleRangeRender(GameObject object) {
-        if(object.position.y>= world.heightSoFar-10f && object.position.y <= world.heightSoFar+10f)
-            return true;
-        return false;
+        return object.position.y >= world.heightSoFar - 10f && object.position.y <= world.heightSoFar + 10f;
     }
 
     private void renderClouds() {

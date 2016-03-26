@@ -1,3 +1,4 @@
+//apply plugin: 'com.android.application'
 android {
     buildToolsVersion "23.0.2"
     compileSdkVersion 23
@@ -19,6 +20,7 @@ android {
         applicationId "uy.com.marcher.superjumper"
         minSdkVersion 15
         targetSdkVersion 23
+        //multiDexEnabled true
     }
 }
 

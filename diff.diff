@@ -1,0 +1,964 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 2a8d517..0d9bb61 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -1,3 +1,4 @@
++apply plugin: 'com.android.application'
+ android {
+     buildToolsVersion "23.0.2"
+     compileSdkVersion 23
+@@ -19,6 +20,7 @@ android {
+         applicationId "uy.com.marcher.superjumper"
+         minSdkVersion 15
+         targetSdkVersion 23
++        multiDexEnabled true
+     }
+ }
+ 
+diff --git a/build.gradle b/build.gradle
+index 3efdfd1..1edf41a 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -1,4 +1,3 @@
+-import groovy.json.JsonSlurper
+ 
+ buildscript {
+     repositories {
+diff --git a/core/build.gradle b/core/build.gradle
+index b19472f..1e0a7d9 100644
+--- a/core/build.gradle
++++ b/core/build.gradle
+@@ -11,3 +11,6 @@ sourceSets.main.java.srcDirs = ["src/"]
+ eclipse.project {
+     name = appName + "-core"
+ }
++dependencies {
++    compile 'org.robovm:robovm-rt:1.12.0'
++}
+\ No newline at end of file
+diff --git a/core/src/uy/com/marcher/superjumper/Game/Assets.java b/core/src/uy/com/marcher/superjumper/Game/Assets.java
+index b43f58a..3e7c61f 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/Assets.java
++++ b/core/src/uy/com/marcher/superjumper/Game/Assets.java
+@@ -74,9 +74,6 @@ public class Assets implements Disposable, AssetErrorListener{
+     public AssetsEnemies enemies;
+ 
+ 
+-
+-    public static FreeTypeFontGenerator fontGenerator;
+-    public static FreeTypeFontGenerator.FreeTypeFontParameter fontParameter;
+     public ShaderProgram blurShader;
+     public FrameBuffer fboA;
+     public FrameBuffer fboB;
+@@ -158,8 +155,8 @@ public class Assets implements Disposable, AssetErrorListener{
+     }
+ 
+     private static void loadFont() {
+-        fontGenerator =new FreeTypeFontGenerator(Gdx.files.internal("data/fonts/cubic.ttf"));
+-        fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
++        FreeTypeFontGenerator fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("data/fonts/cubic.ttf"));
++        FreeTypeFontGenerator.FreeTypeFontParameter fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+         fontParameter.size = 16;
+         fontParameter.minFilter = Texture.TextureFilter.Linear;
+         fontParameter.magFilter = Texture.TextureFilter.Linear;
+@@ -195,9 +192,6 @@ public class Assets implements Disposable, AssetErrorListener{
+     @Override
+     public void dispose() {
+         assetManager.dispose();
+-//        blurShader.dispose();
+-        fboA.dispose();
+-        fboB.dispose();
+     }
+ 
+ 
+diff --git a/core/src/uy/com/marcher/superjumper/Game/Objects/Decoration/Cloud.java b/core/src/uy/com/marcher/superjumper/Game/Objects/Decoration/Cloud.java
+index 3b158dc..61645fb 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/Objects/Decoration/Cloud.java
++++ b/core/src/uy/com/marcher/superjumper/Game/Objects/Decoration/Cloud.java
+@@ -65,6 +65,7 @@ public class Cloud extends DynamicGameObject {
+         batch.setColor(1,1,1,1);
+     }
+ 
++    @Override
+     public void render(SpriteBatch batch){
+         drawDust(batch, 0.5f, 0.5f, 0.5f);
+ 
+diff --git a/core/src/uy/com/marcher/superjumper/Game/Objects/GameObject.java b/core/src/uy/com/marcher/superjumper/Game/Objects/GameObject.java
+index 7914cc9..4bab9e6 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/Objects/GameObject.java
++++ b/core/src/uy/com/marcher/superjumper/Game/Objects/GameObject.java
+@@ -1,25 +1,10 @@
+-/*******************************************************************************
+- * Copyright 2011 See AUTHORS file.
+- * <p/>
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- ******************************************************************************/
+-
+ package uy.com.marcher.superjumper.Game.Objects;
+ 
++import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+ import com.badlogic.gdx.math.Rectangle;
+ import com.badlogic.gdx.math.Vector2;
+ 
+-public class GameObject {
++public abstract class GameObject {
+     public final Vector2 position;
+     public Rectangle bounds;
+     public Vector2 origin;
+@@ -34,4 +19,8 @@ public class GameObject {
+         this.dimension=new Vector2(1,1);
+         this.scale= new Vector2(1,1);
+     }
++
++    public void render(SpriteBatch batch){
++
++    }
+ }
+diff --git a/core/src/uy/com/marcher/superjumper/Game/Objects/Jumper.java b/core/src/uy/com/marcher/superjumper/Game/Objects/Jumper.java
+index 951d2e4..53752d4 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/Objects/Jumper.java
++++ b/core/src/uy/com/marcher/superjumper/Game/Objects/Jumper.java
+@@ -1,19 +1,3 @@
+-/*******************************************************************************
+- * Copyright 2011 See AUTHORS file.
+- * <p/>
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- ******************************************************************************/
+-
+ package uy.com.marcher.superjumper.Game.Objects;
+ 
+ import com.badlogic.gdx.Gdx;
+@@ -27,29 +11,25 @@ import uy.com.marcher.superjumper.Util.TextureHelper;
+ 
+ public class Jumper extends DynamicGameObject {
+ 
+-
+     public static final int JUMPER_STATE_JUMP = 0;
+     public static final int JUMPER_STATE_FALL = 1;
+     public static final int JUMPER_STATE_HIT = 2;
+     public static final float JUMPER_JUMP_VELOCITY = 14;
+     public static final float JUMPER_MOVE_VELOCITY = 20;
+-    public static final float JUMPER_WIDTH = 1f;
+-    public static final float JUMPER_HEIGHT = 1.2f;
+-
+-    public static final float TUNACAN_TIME = 10f;
+-
+-    public ParticleEffect fireParticle = new ParticleEffect();
+-
+-    public int state;
+-    public float stateTime;
+-    public float lookingAtSide;
++    private static final float JUMPER_WIDTH = 1f;
++    private static final float JUMPER_HEIGHT = 1.7594f;
++    private static final float TUNACAN_TIME = 10f;
+ 
+-    public float tunaCanLeftTime;
+-    public World world;
++    private ParticleEffect fireParticle = new ParticleEffect();
++    private int state;
++    private float stateTime;
++    private float lookingAtSide;
++    private float tunaCanLeftTime;
++    private World world;
+ 
+     public Jumper(float x, float y) {
+         super(x, y, JUMPER_WIDTH, JUMPER_HEIGHT);
+-        state = JUMPER_STATE_FALL;
++        setState(JUMPER_STATE_FALL);
+         stateTime = 0;
+         fireParticle.load(Gdx.files.internal("data/particles/fireNsmoke.pfx"), Gdx.files.internal("data/particles"));
+         fireParticle.flipY();
+@@ -75,17 +55,17 @@ public class Jumper extends DynamicGameObject {
+         updateBoundsPosition();
+         //Gdx.gl.glClear(GL20.GL_ACTIVE_TEXTURE);
+         updateFireParticleEffect(deltaTime);
+-        if (velocity.y > 0 && state != JUMPER_STATE_HIT) {
+-            if (state != JUMPER_STATE_JUMP) {
+-                state = JUMPER_STATE_JUMP;
++        if (velocity.y > 0 && getState() != JUMPER_STATE_HIT) {
++            if (getState() != JUMPER_STATE_JUMP) {
++                setState(JUMPER_STATE_JUMP);
+                 //this.fireParticle.allowCompletion();
+                 stateTime = 0;
+             }
+         }
+ 
+-        if (velocity.y < 0 && state != JUMPER_STATE_HIT) {
+-            if (state != JUMPER_STATE_FALL) {
+-                state = JUMPER_STATE_FALL;
++        if (velocity.y < 0 && getState() != JUMPER_STATE_HIT) {
++            if (getState() != JUMPER_STATE_FALL) {
++                setState(JUMPER_STATE_FALL);
+                 stateTime = 0;
+             }
+         }
+@@ -97,12 +77,15 @@ public class Jumper extends DynamicGameObject {
+     }
+ 
+     private void updateBoundsPosition() {
+-        bounds.x = position.x - bounds.width / 2;
++        float xOffset = -0.1f;
++        if (this.lookingAtSide >= 0)
++            xOffset = -0.4f;
++        bounds.x = xOffset + position.x - bounds.width / 2 ;
+         bounds.y = (position.y - bounds.height / 3);
+     }
+ 
+     private void updateFireParticleEffect(float deltaTime) {
+-        if(velocity.y > 0 && state == JUMPER_STATE_JUMP){
++        if(velocity.y > 0 && getState() == JUMPER_STATE_JUMP){
+             //fireParticle.getEmitters().first().setMaxParticleCount(this.maxParticleCount);
+             fireParticle.getEmitters().first().setContinuous(true);
+             fireParticle.setPosition(this.position.x - 0.3f, this.position.y - 0.3f);
+@@ -132,12 +115,13 @@ public class Jumper extends DynamicGameObject {
+      *
+      * @param batch
+      */
++    @Override
+     public void render(SpriteBatch batch) {
+         TextureRegion keyFrame;
+         renderParticles(batch);
+         renderTunaCanEffect(batch);
+ 
+-        switch (this.state) {
++        switch (this.getState()) {
+             case Jumper.JUMPER_STATE_FALL:
+                 keyFrame = Assets.instance.jumper.jumperRegion;
+                 break;
+@@ -179,7 +163,7 @@ public class Jumper extends DynamicGameObject {
+ 
+     public void hitEnemy() {
+         velocity.set(0, 0);
+-        state = JUMPER_STATE_HIT;
++        setState(JUMPER_STATE_HIT);
+         stateTime = 0;
+     }
+ 
+@@ -190,7 +174,7 @@ public class Jumper extends DynamicGameObject {
+ 
+     public void makeJump(){
+         velocity.y = getJumperVelocity();
+-        state= JUMPER_STATE_JUMP;
++        setState(JUMPER_STATE_JUMP);
+         stateTime = 0;
+     }
+ 
+@@ -202,7 +186,7 @@ public class Jumper extends DynamicGameObject {
+ 
+     public void hitSpring() {
+         velocity.y = JUMPER_JUMP_VELOCITY * 2.5f;
+-        state = JUMPER_STATE_JUMP;
++        setState(JUMPER_STATE_JUMP);
+         stateTime = 0;
+     }
+ 
+@@ -211,6 +195,14 @@ public class Jumper extends DynamicGameObject {
+     }
+ 
+     public boolean isDead() {
+-        return state == JUMPER_STATE_HIT;
++        return getState() == JUMPER_STATE_HIT;
++    }
++
++    public int getState() {
++        return state;
++    }
++
++    public void setState(int state) {
++        this.state = state;
+     }
+ }
+diff --git a/core/src/uy/com/marcher/superjumper/Game/World.java b/core/src/uy/com/marcher/superjumper/Game/World.java
+index b06eaaa..3bcaa5c 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/World.java
++++ b/core/src/uy/com/marcher/superjumper/Game/World.java
+@@ -138,14 +138,14 @@ public class World {
+         updateCoins(deltaTime);
+         updateSprings(deltaTime);
+         updateDusts(deltaTime);
+-        if (jumper.state != Jumper.JUMPER_STATE_HIT) checkCollisions();
++        if (jumper.getState() != Jumper.JUMPER_STATE_HIT) checkCollisions();
+         checkGameOver();
+     }
+ 
+ 
+     private void updateBob(float deltaTime, float accelX) {
+-        if (jumper.state != Jumper.JUMPER_STATE_HIT && jumper.position.y <= 0.3f) jumper.hitPlatform();
+-        if (jumper.state != Jumper.JUMPER_STATE_HIT) jumper.velocity.x = -accelX / 10 * Jumper.JUMPER_MOVE_VELOCITY;
++        if (jumper.getState() != Jumper.JUMPER_STATE_HIT && jumper.position.y <= 0.3f) jumper.hitPlatform();
++        if (jumper.getState() != Jumper.JUMPER_STATE_HIT) jumper.velocity.x = -accelX / 10 * Jumper.JUMPER_MOVE_VELOCITY;
+         jumper.update(deltaTime);
+         heightSoFar = Math.max(jumper.position.y, heightSoFar);
+     }
+@@ -173,9 +173,7 @@ public class World {
+     }
+ 
+     private boolean onlyVisibleRangeUpdate(GameObject object) {
+-        if(object.position.y>= heightSoFar-10f && object.position.y <= heightSoFar+10f)
+-            return true;
+-        return false;
++        return object.position.y >= heightSoFar - 10f && object.position.y <= heightSoFar + 10f;
+     }
+ 
+     private void updateSquirrels(float deltaTime) {
+diff --git a/core/src/uy/com/marcher/superjumper/Game/WorldRenderer.java b/core/src/uy/com/marcher/superjumper/Game/WorldRenderer.java
+index db3fd8c..20ad1b5 100644
+--- a/core/src/uy/com/marcher/superjumper/Game/WorldRenderer.java
++++ b/core/src/uy/com/marcher/superjumper/Game/WorldRenderer.java
+@@ -1,19 +1,3 @@
+-/*******************************************************************************
+- * Copyright 2011 See AUTHORS file.
+- * <p/>
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- ******************************************************************************/
+-
+ package uy.com.marcher.superjumper.Game;
+ 
+ import com.badlogic.gdx.Gdx;
+@@ -22,19 +6,17 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
+ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+ import com.badlogic.gdx.graphics.g2d.TextureRegion;
+ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+-import com.badlogic.gdx.math.MathUtils;
+ import uy.com.marcher.superjumper.Game.Objects.*;
+ import uy.com.marcher.superjumper.Game.Objects.Decoration.Cloud;
+ import uy.com.marcher.superjumper.Util.Animation;
+ import uy.com.marcher.superjumper.Util.Constants;
+-import uy.com.marcher.superjumper.Util.TextureHelper;
+ 
+ public class WorldRenderer {
+     private static final float SCALE_RATE = 1.3f;
+-    World world;
+-    OrthographicCamera cam;
+-    SpriteBatch batch;
+-    ShapeRenderer sr;
++    private World world;
++    private OrthographicCamera cam;
++    private SpriteBatch batch;
++    private ShapeRenderer sr;
+ 
+     public WorldRenderer(SpriteBatch batch, World world) {
+         this.world = world;
+@@ -68,14 +50,14 @@ public class WorldRenderer {
+         renderClouds();
+         renderPlatforms();
+         renderBob();
+-        renderFrontClouds();
+         renderItems();
+         renderEnemies();
++        renderFrontClouds();
+         //renderCastle();
+         batch.end();
+ 
+         drawEnemiesBounds(false);
+-        drawBobBounds(true);
++        drawBobBounds(false);
+         drawSpringBounds(false);
+         drawPlatformBounds(false);
+         drawStarBounds(false);
+@@ -87,8 +69,7 @@ public class WorldRenderer {
+             return;
+         for(TunaCan tunaCan : world.tunaCans){
+             initializeShapeRender();
+-            sr.rect(tunaCan.bounds.x, tunaCan.bounds.y,
+-                    tunaCan.bounds.getWidth(), tunaCan.bounds.getHeight());
++            drawObjectBound(tunaCan);
+             sr.end();
+         }
+     }
+@@ -103,8 +84,7 @@ public class WorldRenderer {
+         if(!render)
+             return;
+         initializeShapeRender();
+-        sr.rect(world.jumper.bounds.getX(), world.jumper.bounds.getY(),
+-                world.jumper.bounds.getWidth(), world.jumper.bounds.getHeight());
++        drawObjectBound(world.jumper);
+         sr.end();
+     }
+ 
+@@ -114,8 +94,7 @@ public class WorldRenderer {
+         int len = world.platforms.size();
+         for (int i = 0; i < len; i++) {
+             initializeShapeRender();
+-            sr.rect(world.platforms.get(i).bounds.x, world.platforms.get(i).bounds.y,
+-                    world.platforms.get(i).bounds.getWidth(), world.platforms.get(i).bounds.getHeight());
++            drawObjectBound(world.platforms.get(i));
+             sr.end();
+         }
+     }
+@@ -126,8 +105,7 @@ public class WorldRenderer {
+         int len = world.stars.size();
+         for (int i = 0; i < len; i++) {
+             initializeShapeRender();
+-            sr.rect(world.stars.get(i).bounds.x, world.stars.get(i).bounds.y,
+-                    world.stars.get(i).bounds.getWidth(), world.stars.get(i).bounds.getHeight());
++            drawObjectBound(world.stars.get(i));
+             sr.end();
+         }
+     }
+@@ -138,12 +116,16 @@ public class WorldRenderer {
+         int len = world.enemies.size();
+         for (int i = 0; i < len; i++) {
+             initializeShapeRender();
+-            sr.rect(world.enemies.get(i).bounds.x, world.enemies.get(i).bounds.y,
+-                    world.enemies.get(i).bounds.getWidth(), world.enemies.get(i).bounds.getHeight());
++            drawObjectBound(world.enemies.get(i));
+             sr.end();
+         }
+     }
+ 
++    private void drawObjectBound(GameObject gameObject) {
++        sr.rect(gameObject.bounds.x,gameObject.bounds.y,
++                gameObject.bounds.getWidth(), gameObject.bounds.getHeight());
++    }
++
+     private void drawSpringBounds(boolean render) {
+         if(!render)
+             return;
+@@ -161,9 +143,7 @@ public class WorldRenderer {
+     }
+ 
+     private boolean onlyVisibleRangeRender(GameObject object) {
+-        if(object.position.y>= world.heightSoFar-10f && object.position.y <= world.heightSoFar+10f)
+-            return true;
+-        return false;
++        return object.position.y >= world.heightSoFar - 10f && object.position.y <= world.heightSoFar + 10f;
+     }
+ 
+     private void renderClouds() {
+diff --git a/core/src/uy/com/marcher/superjumper/Screens/GameOverScreen.java b/core/src/uy/com/marcher/superjumper/Screens/GameOverScreen.java
+index f0807a8..0a41836 100644
+--- a/core/src/uy/com/marcher/superjumper/Screens/GameOverScreen.java
++++ b/core/src/uy/com/marcher/superjumper/Screens/GameOverScreen.java
+@@ -2,15 +2,21 @@ package uy.com.marcher.superjumper.Screens;
+ 
+ import com.badlogic.gdx.Gdx;
+ import com.badlogic.gdx.ScreenAdapter;
++import com.badlogic.gdx.graphics.Color;
+ import com.badlogic.gdx.graphics.OrthographicCamera;
+ import com.badlogic.gdx.scenes.scene2d.InputEvent;
+ import com.badlogic.gdx.scenes.scene2d.Stage;
+ import com.badlogic.gdx.scenes.scene2d.ui.*;
++import com.badlogic.gdx.scenes.scene2d.ui.Image;
++import com.badlogic.gdx.scenes.scene2d.ui.Label;
++import com.badlogic.gdx.scenes.scene2d.ui.Window;
+ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+ import com.badlogic.gdx.utils.viewport.ScreenViewport;
+ import uy.com.marcher.superjumper.Game.Assets;
+ import uy.com.marcher.superjumper.SuperJumper;
+ import uy.com.marcher.superjumper.Util.Constants;
++import uy.com.marcher.superjumper.Util.facebook.FacebookHelper;
++
+ 
+ /**
+  * Created by gordo on 10/03/16.
+@@ -20,14 +26,18 @@ public class GameOverScreen extends ScreenAdapter {
+ 
+     public Stage stage;
+ 
+-    private Image facebook;
++    private Image facebookButton;
+     private Window window;
+     private OrthographicCamera camera;
++    private SuperJumper game;
++    private FacebookHelper facebookHelper;
+ 
+ 
+-    public GameOverScreen() {
+-        this.camera = new OrthographicCamera(Constants.VIRTUAL_WIDTH, Constants.VIRTUAL_HEIGHT);
+-        this.camera.position.set(Constants.VIRTUAL_WIDTH/2, Constants.VIRTUAL_HEIGHT/2,0);
++    public GameOverScreen(SuperJumper game) {
++        this.game = game;
++        this.camera = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
++        this.camera.position.set(Constants.FRUSTUM_WIDTH/2, Constants.FRUSTUM_HEIGHT/2,0);
++        facebookHelper = new FacebookHelper(game);
+     }
+ 
+ 
+@@ -50,34 +60,34 @@ public class GameOverScreen extends ScreenAdapter {
+         Table layer = buildFacebookIcon();
+         window.add(layer).row();
+         window.setVisible(true);
+-        window.setColor(1f,.9f,.973f,0.9f);
++        window.setColor(Color.GRAY);
+         window.pack();
+-        window.setSize(200,200);
++        window.setSize(Gdx.graphics.getWidth()/1.2f,Gdx.graphics.getHeight()/3);
+         window.setPosition(
+-                Constants.VIRTUAL_WIDTH/2 + window.getWidth()/2,
+-                Constants.VIRTUAL_HEIGHT/2 + window.getHeight()/2
++                Gdx.graphics.getWidth()/2 - window.getWidth()/2,
++                Gdx.graphics.getHeight()/2 - window.getHeight()/2
+         );
+         return window;
+     }
+ 
+     private Table buildFacebookIcon() {
+         Table layer = new Table();
+-        layer.pad(10,10,0,10);
++        layer.pad(1f,1f,0,1f);
+         layer.add(new Label("Connect to facebook", Assets.windowSkin));
+         //TODO: If not logged in show fb icon
+         layer.row();
+-        layer.columnDefaults(0).padRight(10);
+-        layer.columnDefaults(1).padRight(10);
+-        facebook = new Image(Assets.instance.GUI.facebookLogin);
+-        facebook.addListener(new ClickListener(){
+-            @Override
+-            public void clicked(InputEvent event, float x, float y) {
+-                super.clicked(event, x, y);
+-
+-                //TODO:hacer login con facebook
+-            }
+-        });
+-        layer.add(facebook).width(90).height(31);
++        layer.columnDefaults(0).padRight(1f);
++        layer.columnDefaults(1).padRight(1f);
++        if(!game.facebook.isSignedIn()) {
++            facebookButton = new Image(Assets.instance.GUI.facebookLogin);
++            facebookButton.addListener(new ClickListener() {
++                @Override
++                public void clicked(InputEvent event, float x, float y) {
++                    facebookHelper.login();
++                }
++            });
++            layer.add(facebookButton).width(180).height(62);
++        }
+         return layer;
+     }
+ 
+diff --git a/core/src/uy/com/marcher/superjumper/Screens/GameScreen.java b/core/src/uy/com/marcher/superjumper/Screens/GameScreen.java
+index a9a3f14..506e374 100644
+--- a/core/src/uy/com/marcher/superjumper/Screens/GameScreen.java
++++ b/core/src/uy/com/marcher/superjumper/Screens/GameScreen.java
+@@ -25,13 +25,9 @@ import com.badlogic.gdx.graphics.GL20;
+ import com.badlogic.gdx.graphics.OrthographicCamera;
+ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
++import com.badlogic.gdx.math.Matrix4;
+ import com.badlogic.gdx.math.Rectangle;
+ import com.badlogic.gdx.math.Vector3;
+-import com.badlogic.gdx.utils.Array;
+-import de.tomgrill.gdxfacebook.core.GDXFacebookCallback;
+-import de.tomgrill.gdxfacebook.core.GDXFacebookError;
+-import de.tomgrill.gdxfacebook.core.SignInMode;
+-import de.tomgrill.gdxfacebook.core.SignInResult;
+ import uy.com.marcher.superjumper.Game.Assets;
+ import uy.com.marcher.superjumper.Game.Objects.Jumper;
+ import uy.com.marcher.superjumper.Game.World;
+@@ -42,7 +38,6 @@ import uy.com.marcher.superjumper.Util.AdsController;
+ import uy.com.marcher.superjumper.Util.Constants;
+ import uy.com.marcher.superjumper.Util.Settings;
+ import uy.com.marcher.superjumper.Util.TextureHelper;
+-import uy.com.marcher.superjumper.Util.facebook.FacebookRequest;
+ 
+ public class GameScreen extends ScreenAdapter {
+     static final int GAME_READY = 0;
+@@ -74,13 +69,14 @@ public class GameScreen extends ScreenAdapter {
+ 
+     private long engineSound = -1;
+ 
++
+     public GameScreen(SuperJumper game) {
+         this.game = game;
+         this.sr = new ShapeRenderer();
+ 
+         state = GAME_READY;
+-        guiCam = new OrthographicCamera(Constants.FRUSTUM_WIDTH, Constants.FRUSTUM_HEIGHT);
+-        guiCam.position.set(Constants.FRUSTUM_WIDTH/2, Constants.FRUSTUM_HEIGHT/2, 0);
++        guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
++        guiCam.position.set(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2, 0);
+         touchPoint = new Vector3();
+         worldListener = new WorldListener() {
+ 
+@@ -106,10 +102,10 @@ public class GameScreen extends ScreenAdapter {
+         };
+         world = new World(worldListener);
+         renderer = new WorldRenderer(game.batcher, world);
+-        pauseBounds = new Rectangle(320 - 32, 480 - 32, 32, 32);
+-        volumeControlBounds = new Rectangle(320 - 70, 480 - 32,32,32);
+-        resumeBounds = new Rectangle(160 - 48/2, 240-48/2, 48, 48);
+-        gameOverScreen = new GameOverScreen();
++        pauseBounds = new Rectangle(Gdx.graphics.getWidth()-48, Gdx.graphics.getHeight() - 48, 48, 48);
++        volumeControlBounds = new Rectangle(Gdx.graphics.getWidth() - 110, Gdx.graphics.getHeight() - 48,48,48);
++        resumeBounds = new Rectangle(Gdx.graphics.getWidth()/2 - 48/2, Gdx.graphics.getHeight()/2-48/2, 48, 48);
++        gameOverScreen = new GameOverScreen(game);
+         lastScore = 0;
+         scoreString = "SCORE: 0";
+         altitudeString = "0 m";
+@@ -150,39 +146,6 @@ public class GameScreen extends ScreenAdapter {
+                 break;
+         }
+     }
+-
+-    private void loginIntoFacebook() {
+-        if(!game.facebook.isSignedIn()){
+-            Array<String> permissions = new Array<String>();
+-            permissions.add("email");
+-            permissions.add("public_profile");
+-            permissions.add("user_friends");
+-
+-            game.facebook.signIn(SignInMode.READ, permissions, new GDXFacebookCallback<SignInResult>() {
+-                @Override
+-                public void onSuccess(SignInResult result) {
+-                    FacebookRequest fr = new FacebookRequest(game);
+-                    fr.doRequest();
+-                }
+-
+-                @Override
+-                public void onError(GDXFacebookError error) {
+-                    // Error handling
+-                }
+-
+-                @Override
+-                public void onCancel() {
+-                    // When the user cancels the login process
+-                }
+-
+-                @Override
+-                public void onFail(Throwable t) {
+-                    // When the login fails
+-                }
+-            });
+-        }
+-    }
+-
+     private void changeSoundSettingStatus() {
+         Settings.soundEnabled = !Settings.soundEnabled;
+     }
+@@ -211,17 +174,25 @@ public class GameScreen extends ScreenAdapter {
+ 
+     private void updateRunning(float deltaTime) {
+         if (Gdx.input.justTouched()) {
+-            guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
+-
+-            if (pauseBounds.contains(touchPoint.x, touchPoint.y)) {
+-                Assets.playSound(Assets.clickSound);
+-                state = GAME_PAUSED;
+-                return;
+-            }
++            if (updateButtonEvents()) return;
+         }
++        updateSounds();
++        updateInputMethods(deltaTime);
++        setAltitudeString();
++        updateGUI();
++    }
+ 
+-        ApplicationType appType = Gdx.app.getType();
++    private boolean updateButtonEvents() {
++        guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
++        if (pauseBounds.contains(touchPoint.x, touchPoint.y)) {
++            Assets.playSound(Assets.clickSound);
++            state = GAME_PAUSED;
++            return true;
++        }
++        return false;
++    }
+ 
++    private void updateSounds() {
+         if (Gdx.input.justTouched()) {
+             if(!world.jumper.isDead())
+                 world.jumper.makeJump();
+@@ -236,22 +207,14 @@ public class GameScreen extends ScreenAdapter {
+                 }
+             }
+         }
+-        if(world.jumper.state == Jumper.JUMPER_STATE_FALL){
++        if(world.jumper.getState() == Jumper.JUMPER_STATE_FALL){
+             if(engineSound != -1 && Settings.soundEnabled){
+                 Assets.engineSound.pause();
+             }
+         }
++    }
+ 
+-        // should work also with Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)
+-        if (appType == ApplicationType.Android || appType == ApplicationType.iOS) {
+-            world.update(deltaTime, Gdx.input.getAccelerometerX());
+-        } else {
+-            float accel = 0;
+-            if (Gdx.input.isKeyPressed(Keys.DPAD_LEFT)) accel = 5f;
+-            if (Gdx.input.isKeyPressed(Keys.DPAD_RIGHT)) accel = -5f;
+-            world.update(deltaTime, accel);
+-        }
+-        setAltitudeString();
++    private void updateGUI() {
+         if (world.score != lastScore) {
+             lastScore = world.score;
+             scoreString = "SCORE: " + lastScore;
+@@ -270,16 +233,31 @@ public class GameScreen extends ScreenAdapter {
+         }
+     }
+ 
++    private void updateInputMethods(float deltaTime) {
++        ApplicationType appType = Gdx.app.getType();
++        // should work also with Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)
++        if (appType == ApplicationType.Android || appType == ApplicationType.iOS) {
++            world.update(deltaTime, Gdx.input.getAccelerometerX());
++        } else {
++            float accel = 0;
++            if (Gdx.input.isKeyPressed(Keys.DPAD_LEFT)) accel = 5f;
++            if (Gdx.input.isKeyPressed(Keys.DPAD_RIGHT)) accel = -5f;
++            world.update(deltaTime, accel);
++        }
++    }
++
+     private void setAltitudeString() {
+         altitudeString = Math.round(world.heightSoFar) + " m";
+     }
+ 
+     private void updatePaused() {
++        Assets.stopAllSound();
+         if (Gdx.input.justTouched()) {
+             guiCam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
+-            Assets.engineSound.stop();
+             if (resumeBounds.contains(touchPoint.x, touchPoint.y)) {
+                 Assets.playSound(Assets.clickSound);
++                if(Settings.soundEnabled)
++                    Assets.music.play();
+                 state = GAME_RUNNING;
+                 return;
+             }
+@@ -308,11 +286,15 @@ public class GameScreen extends ScreenAdapter {
+         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+         renderer.render();
+         guiCam.update();
+-        game.batcher.setProjectionMatrix(guiCam.combined);
++        //game.batcher.setProjectionMatrix(guiCam.combined);
++        Matrix4 normalProjection = new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
++
++        game.batcher.setProjectionMatrix(normalProjection);
+         game.batcher.enableBlending();
+         game.batcher.begin();
+         game.batcher.draw(Settings.soundEnabled ? Assets.instance.GUI.soundOn : Assets.instance.GUI.soundOff,
+-                320 - 70, 480 - 32,32,32);
++                volumeControlBounds.getX(), volumeControlBounds.getY(),
++                volumeControlBounds.getWidth(),volumeControlBounds.getHeight());
+ 
+         switch (state) {
+             case GAME_READY:
+@@ -332,7 +314,26 @@ public class GameScreen extends ScreenAdapter {
+                 break;
+         }
+         game.batcher.end();
++
++        drawGUIBounds(false);
++    }
++
++    private void drawGUIBounds(boolean render) {
++        if(!render)
++            return;
++        sr.setProjectionMatrix(game.batcher.getProjectionMatrix());
++        sr.begin(ShapeRenderer.ShapeType.Line);
++        sr.setColor(Color.RED);
++        renderRectancle(pauseBounds);
++        renderRectancle(volumeControlBounds);
++        sr.end();
+     }
++
++    private void renderRectancle(Rectangle rectangle) {
++        sr.rect(rectangle.x,rectangle.y,
++                rectangle.getWidth(), rectangle.getHeight());
++    }
++
+     private void presentReady() {
+         Assets.font.draw(game.batcher, "Can you help my brother? \n\n" +
+                 "He dreams on \n" +
+@@ -349,17 +350,19 @@ public class GameScreen extends ScreenAdapter {
+     }
+ 
+     private void presentRunning() {
+-        game.batcher.draw(Assets.instance.GUI.pauseButton, 320 -32, 480 - 32, 32, 32);
+-        Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
+-        Assets.font.draw(game.batcher, altitudeString,16,480-42);
++        game.batcher.draw(Assets.instance.GUI.pauseButton, pauseBounds.getX(),
++                pauseBounds.getY(), pauseBounds.getWidth(), pauseBounds.getHeight());
++        Assets.font.draw(game.batcher, scoreString, 16, Gdx.graphics.getHeight() - 10);
++        Assets.font.draw(game.batcher, altitudeString, 16, Gdx.graphics.getHeight() - 50);
+         game.batcher.setColor(Color.RED);
+-        Assets.font.draw(game.batcher, Gdx.graphics.getFramesPerSecond()+"", 20,20);
++        Assets.font.draw(game.batcher, Gdx.graphics.getFramesPerSecond()+"", 16,16);
+         game.batcher.setColor(1,1,1,1);
+     }
+ 
+     private void presentPaused() {
+-        game.batcher.draw(Assets.instance.GUI.resumeButton, 160 - 48 / 2, 240 - 48 / 2, 48, 48);
+-        Assets.font.draw(game.batcher, scoreString, 16, 480 - 20);
++        game.batcher.draw(Assets.instance.GUI.resumeButton, resumeBounds.getX(), resumeBounds.getY(),
++                resumeBounds.getWidth(), resumeBounds.getHeight());
++        Assets.font.draw(game.batcher, scoreString, 16, Gdx.graphics.getHeight() - 20);
+     }
+ 
+     private void presentLevelEnd() {
+diff --git a/core/src/uy/com/marcher/superjumper/SuperJumper.java b/core/src/uy/com/marcher/superjumper/SuperJumper.java
+index 938872d..a521230 100644
+--- a/core/src/uy/com/marcher/superjumper/SuperJumper.java
++++ b/core/src/uy/com/marcher/superjumper/SuperJumper.java
+@@ -1,19 +1,3 @@
+-/*******************************************************************************
+- * Copyright 2011 See AUTHORS file.
+- * <p/>
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- ******************************************************************************/
+-
+ package uy.com.marcher.superjumper;
+ 
+ import com.badlogic.gdx.Game;
+@@ -30,10 +14,11 @@ import uy.com.marcher.superjumper.Game.Assets;
+ import uy.com.marcher.superjumper.Screens.GameScreen;
+ import uy.com.marcher.superjumper.Screens.SplashScreen;
+ import uy.com.marcher.superjumper.Util.ActionResolver;
++import uy.com.marcher.superjumper.Util.Constants;
+ import uy.com.marcher.superjumper.Util.Settings;
+ 
+ public class SuperJumper extends Game{
+-    private static long SPLASH_MINIMUM_MILLIS = 9500L;
++    private static long SPLASH_MINIMUM_MILLIS = 1L;
+     public ActionResolver actionResolver;
+     // used by all screens
+     public SpriteBatch batcher;
+@@ -82,7 +67,7 @@ public class SuperJumper extends Game{
+ 
+                     private GDXFacebook loadFacebookApp() {
+                         GDXFacebookConfig config = new GDXFacebookConfig();
+-                        config.APP_ID = "1667001536898221"; // required
++                        config.APP_ID = Constants.STRING; // required
+                         config.PREF_FILENAME = ".facebookSessionData"; // optional
+                         config.GRAPH_API_VERSION = "v2.5"; // optional, default is v2.5
+ 
+diff --git a/core/src/uy/com/marcher/superjumper/Util/AdsController.java b/core/src/uy/com/marcher/superjumper/Util/AdsController.java
+index 441b4a3..da8dde9 100644
+--- a/core/src/uy/com/marcher/superjumper/Util/AdsController.java
++++ b/core/src/uy/com/marcher/superjumper/Util/AdsController.java
+@@ -4,8 +4,8 @@ package uy.com.marcher.superjumper.Util;
+  * Created by gordo on 31/01/16.
+  */
+ public interface AdsController {
+-    public void showBannerAd();
+-    public void hideBannerAd();
++    void showBannerAd();
++    void hideBannerAd();
+ 
+-    public boolean isWifiConnected();
++    boolean isWifiConnected();
+ }
+diff --git a/core/src/uy/com/marcher/superjumper/Util/Constants.java b/core/src/uy/com/marcher/superjumper/Util/Constants.java
+index 24f4a8d..3edf59b 100644
+--- a/core/src/uy/com/marcher/superjumper/Util/Constants.java
++++ b/core/src/uy/com/marcher/superjumper/Util/Constants.java
+@@ -22,4 +22,7 @@ public final class Constants {
+     public static final float FRUSTUM_WIDTH = 9;
+     public static final float FRUSTUM_HEIGHT = 16;
+ 
++    public static final String STRING = "1667001536898221";
++
++    public static final String SERVER_URL = "http://rocketcat.nerdscorner.com.uy/";
+ }
+diff --git a/core/src/uy/com/marcher/superjumper/Util/facebook/FacebookHelper.java b/core/src/uy/com/marcher/superjumper/Util/facebook/FacebookHelper.java
+index 8b1ac3a..615a5e1 100644
+--- a/core/src/uy/com/marcher/superjumper/Util/facebook/FacebookHelper.java
++++ b/core/src/uy/com/marcher/superjumper/Util/facebook/FacebookHelper.java
+@@ -1,9 +1,13 @@
+ package uy.com.marcher.superjumper.Util.facebook;
+ 
++import com.badlogic.gdx.Gdx;
++import com.badlogic.gdx.Net;
++import com.badlogic.gdx.net.HttpRequestBuilder;
+ import com.badlogic.gdx.utils.Array;
+ import com.badlogic.gdx.utils.JsonValue;
+ import de.tomgrill.gdxfacebook.core.*;
+ import uy.com.marcher.superjumper.SuperJumper;
++import uy.com.marcher.superjumper.Util.Constants;
+ 
+ /**
+  * Created by gordo on 09/03/16.
+@@ -16,7 +20,7 @@ public class FacebookHelper {
+         this.game = game;
+     }
+ 
+-    public void facebookLogin(){
++    public void login(){
+         Array<String> permissions = new Array<String>();
+         permissions.add("email");
+         permissions.add("public_profile");
+@@ -65,6 +69,8 @@ public class FacebookHelper {
+ 
+                 System.out.println("***** " + fbID);
+                 System.out.println("***** "+fbNickname);
++
++                registerUser(fbID,fbNickname);
+             }
+ 
+             @Override
+@@ -84,4 +90,31 @@ public class FacebookHelper {
+ 
+         });
+     }
++
++    private void registerUser(String fbID, String fbNickname) {
++        HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
++        Net.HttpRequest httpRequest = requestBuilder
++                .newRequest()
++                .method(Net.HttpMethods.POST)
++                .url(Constants.SERVER_URL)
++                .content("id=" + fbID + "&facebookName="+fbNickname)
++                .build();
++        Gdx.net.sendHttpRequest(httpRequest, new Net.HttpResponseListener() {
++            @Override
++            public void handleHttpResponse(Net.HttpResponse httpResponse) {
++                System.out.println("Usuario registrado");
++            }
++
++            @Override
++            public void failed(Throwable t) {
++
++            }
++
++            @Override
++            public void cancelled() {
++
++            }
++        });
++
++    }
+ }
